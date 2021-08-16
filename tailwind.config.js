@@ -1,6 +1,10 @@
 module.exports = {
   purge: false,
   theme: {},
-  variants: {},
+  variants: {
+    extend: {
+      backgroundColor: ['active'],
+    },
+  },
   plugins: [],
 };
