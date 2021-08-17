@@ -55,8 +55,17 @@ subscriptions _ =
 renderDiceArea : Html Msg
 renderDiceArea =
     div [ class "w-64 h-64 bg-gray-700 rounded-lg border-black" ]
-        [ div [ class "flex-col content-evenly justify-center" ]
-            [ div []
+        [ div [ class "w-full h-full flex flex-col justify-evenly" ]
+            [ div [ class "flex w-full justify-evenly" ]
+                [ img [ class "w-8 h-8", src "Dice-1-b.svg" ] []
+                , img [ class "w-8 h-8", src "Dice-2-b.svg" ] []
+                , img [ class "w-8 h-8", src "Dice-3-b.svg" ] []
+                ]
+            , div [ class "flex w-full justify-evenly" ]
+                [ img [ class "w-8 h-8", src "Dice-4-b.svg" ] []
+                , img [ class "w-8 h-8", src "Dice-5-b.svg" ] []
+                , img [ class "w-8 h-8", src "Dice-6a-b.svg" ] []
+                ]
             ]
         ]
 
@@ -67,7 +76,7 @@ view model =
         [ div [ class "w-64 flex-col justify-center items-center space-y-4" ]
             [ div [ class "flex justify-center w-full" ]
                 [ button [ class "bg-blue-800 hover:bg-blue-700 active:bg-blue-600 cursor-pointer rounded shadow py-1 px-4" ] [ text "Roll" ]
-                , renderDiceArea
                 ]
+            , renderDiceArea
             ]
         ]
