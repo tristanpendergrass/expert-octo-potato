@@ -60,6 +60,15 @@ getTopDuringSpin percentDone =
     top + shiftDown
 
 
+getIthElement : Float -> Int
+getIthElement percentDone =
+    let
+        n =
+            30
+    in
+    truncate (percentDone * (2 * n + 1) / 2)
+
+
 type DiceRoll
     = SlideUp Float Float
     | SpinAnimation Float Float
@@ -103,7 +112,7 @@ update msg model =
             case model of
                 Rolling (SlideUp length time) ->
                     if time >= length then
-                        ( Rolling (SpinAnimation 3000 0), Cmd.none )
+                        ( Rolling (SpinAnimation 2000 0), Cmd.none )
 
                     else
                         ( Rolling (SlideUp length (time + delta)), Cmd.none )
@@ -179,7 +188,7 @@ renderDiceArea model =
                             time / duration
 
                         visualPercentDone =
-                            Ease.outSine percentDone
+                            Ease.bezier 0 1.01 0 1.0 percentDone
 
                         topPx =
                             getTopDuringSpin visualPercentDone
