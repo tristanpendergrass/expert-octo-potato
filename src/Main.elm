@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Basics.Extra
 import Browser
 import Browser.Events
 import Ease exposing (Easing)
@@ -32,9 +33,36 @@ bezierSlideFn3 =
     Ease.bezier 0.02 0.01 0.93 -0.53
 
 
+getTopDuringSpin : Float -> Float
+getTopDuringSpin percentDone =
+    let
+        x =
+            144
+
+        n =
+            30
+
+        top =
+            -1 * x
+
+        numerator =
+            x * (2 * n + 1)
+
+        denominator =
+            1
+
+        totalShiftDown =
+            percentDone * (numerator / denominator)
+
+        shiftDown =
+            Basics.Extra.fractionalModBy (2 * x) totalShiftDown
+    in
+    top + shiftDown
+
+
 type DiceRoll
     = SlideUp Float Float
-    | SpinAnimation
+    | SpinAnimation Float Float
     | Finished
 
 
@@ -75,10 +103,17 @@ update msg model =
             case model of
                 Rolling (SlideUp length time) ->
                     if time >= length then
-                        ( Rolling SpinAnimation, Cmd.none )
+                        ( Rolling (SpinAnimation 3000 0), Cmd.none )
 
                     else
                         ( Rolling (SlideUp length (time + delta)), Cmd.none )
+
+                Rolling (SpinAnimation length time) ->
+                    if time >= length then
+                        ( Rolling Finished, Cmd.none )
+
+                    else
+                        ( Rolling (SpinAnimation length (time + delta)), Cmd.none )
 
                 _ ->
                     noOp
@@ -100,41 +135,86 @@ subscriptions _ =
 renderDiceArea : Model -> Html Msg
 renderDiceArea model =
     let
-        renderDie : String -> Easing -> Float -> Html Msg
-        renderDie imageUrl easingFn distance =
-            case model of
+        renderDie : String -> Html Msg
+        renderDie imageUrl =
+            img [ class "w-8 h-8", src imageUrl ] []
+    in
+    div [ class "w-64 h-64 bg-gray-700 rounded-lg border-black overflow-hidden" ]
+        [ div [ class "w-full h-full flex flex-col justify-evenly" ]
+            (case model of
                 Rolling (SlideUp duration time) ->
+                    let
+                        renderDieContainer : String -> Easing -> Float -> Html Msg
+                        renderDieContainer imageUrl easingFn distance =
+                            let
+                                percentDone =
+                                    time / duration
+
+                                visualPercentDone =
+                                    easingFn percentDone
+
+                                topPx =
+                                    -1 * visualPercentDone * distance
+
+                                topPxStyle =
+                                    String.fromFloat topPx ++ "px"
+                            in
+                            div [ class "relative w-8 h-8" ] [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie imageUrl ] ]
+                    in
+                    [ div [ class "flex w-full justify-evenly relative" ]
+                        [ renderDieContainer "Dice-1-b.svg" bezierSlideFn 500
+                        , renderDieContainer "Dice-2-b.svg" bezierSlideFn2 500
+                        , renderDieContainer "Dice-3-b.svg" bezierSlideFn3 500
+                        ]
+                    , div [ class "flex w-full justify-evenly relative" ]
+                        [ renderDieContainer "Dice-4-b.svg" bezierSlideFn3 400
+                        , renderDieContainer "Dice-5-b.svg" bezierSlideFn 400
+                        , renderDieContainer "Dice-6a-b.svg" bezierSlideFn2 400
+                        ]
+                    ]
+
+                Rolling (SpinAnimation duration time) ->
                     let
                         percentDone =
                             time / duration
 
                         visualPercentDone =
-                            easingFn percentDone
+                            Ease.outSine percentDone
 
                         topPx =
-                            -1 * visualPercentDone * distance
+                            getTopDuringSpin visualPercentDone
 
                         topPxStyle =
                             String.fromFloat topPx ++ "px"
                     in
-                    img [ class "w-8 h-8", src imageUrl, class "absolute left-0 right-0", style "top" (Debug.log "topPx" topPxStyle) ] []
+                    [ div [ class "flex w-full justify-evenly relative" ]
+                        [ div [ class "relative w-8 h-8" ]
+                            [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie "Dice-1-b.svg" ]
+                            ]
+                        ]
+                    ]
 
-                _ ->
-                    img [ class "w-8 h-8", src imageUrl ] []
-    in
-    div [ class "w-64 h-64 bg-gray-700 rounded-lg border-black overflow-hidden" ]
-        [ div [ class "w-full h-full flex flex-col justify-evenly" ]
-            [ div [ class "flex w-full justify-evenly relative" ]
-                [ div [ class "relative w-8 h-8" ] [ renderDie "Dice-1-b.svg" bezierSlideFn 500 ]
-                , div [ class "relative w-8 h-8" ] [ renderDie "Dice-2-b.svg" bezierSlideFn2 500 ]
-                , div [ class "relative w-8 h-8" ] [ renderDie "Dice-3-b.svg" bezierSlideFn3 500 ]
-                ]
-            , div [ class "flex w-full justify-evenly relative" ]
-                [ div [ class "relative w-8 h-8" ] [ renderDie "Dice-4-b.svg" bezierSlideFn 300 ]
-                , div [ class "relative w-8 h-8" ] [ renderDie "Dice-5-b.svg" bezierSlideFn2 300 ]
-                , div [ class "relative w-8 h-8" ] [ renderDie "Dice-6a-b.svg" bezierSlideFn3 300 ]
-                ]
-            ]
+                Rolling Finished ->
+                    [ div [ class "flex w-full justify-evenly relative" ]
+                        [ div [ class "relative w-8 h-8" ]
+                            [ renderDie "Dice-1-b.svg"
+                            ]
+                        ]
+                    ]
+
+                WaitingOnUser ->
+                    [ div [ class "flex w-full justify-evenly relative" ]
+                        [ renderDie "Dice-1-b.svg"
+                        , renderDie "Dice-2-b.svg"
+                        , renderDie "Dice-3-b.svg"
+                        ]
+                    , div [ class "flex w-full justify-evenly relative" ]
+                        [ renderDie "Dice-4-b.svg"
+                        , renderDie "Dice-5-b.svg"
+                        , renderDie "Dice-6a-b.svg"
+                        ]
+                    ]
+            )
         ]
 
 
