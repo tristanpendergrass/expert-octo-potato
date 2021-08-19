@@ -112,7 +112,7 @@ update msg model =
             case model of
                 Rolling (SlideUp length time) ->
                     if time >= length then
-                        ( Rolling (SpinAnimation 2000 0), Cmd.none )
+                        ( Rolling (SpinAnimation 3000 0), Cmd.none )
 
                     else
                         ( Rolling (SlideUp length (time + delta)), Cmd.none )
@@ -195,10 +195,33 @@ renderDiceArea model =
 
                         topPxStyle =
                             String.fromFloat topPx ++ "px"
+
+                        i =
+                            getIthElement visualPercentDone
+
+                        imageUrl =
+                            case modBy 6 i of
+                                0 ->
+                                    "Dice-1-b.svg"
+
+                                1 ->
+                                    "Dice-2-b.svg"
+
+                                2 ->
+                                    "Dice-3-b.svg"
+
+                                3 ->
+                                    "Dice-4-b.svg"
+
+                                4 ->
+                                    "Dice-5-b.svg"
+
+                                _ ->
+                                    "Dice-6a-b.svg"
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
                         [ div [ class "relative w-8 h-8" ]
-                            [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie "Dice-1-b.svg" ]
+                            [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie imageUrl ]
                             ]
                         ]
                     ]
