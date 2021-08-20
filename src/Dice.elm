@@ -7,11 +7,30 @@ import Html.Attributes exposing (..)
 import Random
 
 
+slideDuration : number
+slideDuration =
+    1000
+
+
+spinDuration : number
+spinDuration =
+    2000
+
+
+type DieFace
+    = One
+    | Two
+    | Three
+    | Four
+    | Five
+    | Six
+
+
 type Dice
     = WaitingOnUser
-    | SlideUp Float Float
-    | SpinAnimation Float Float
-    | Finished
+    | SlideUp DieFace (List DieFace) Float
+    | SpinAnimation DieFace (List DieFace) Float
+    | Finished DieFace
 
 
 create : Dice
@@ -21,27 +40,30 @@ create =
 
 roll : Random.Generator Dice
 roll =
-    Random.constant (SlideUp 1000 0)
+    Random.constant (SlideUp Six [ One, Two, Three ] 0)
 
 
 handleAnimationFrameDelta : Float -> Dice -> Dice
 handleAnimationFrameDelta delta dice =
     case dice of
-        SlideUp duration time ->
-            if time >= duration then
-                SpinAnimation 3000 0
+        WaitingOnUser ->
+            dice
+
+        SlideUp result faceSequence time ->
+            if time >= slideDuration then
+                SpinAnimation result faceSequence 0
 
             else
-                SlideUp duration (time + delta)
+                SlideUp result faceSequence (time + delta)
 
-        SpinAnimation length time ->
-            if time >= length then
-                Finished
+        SpinAnimation result faceSequence time ->
+            if time >= spinDuration then
+                Finished result
 
             else
-                SpinAnimation length (time + delta)
+                SpinAnimation result faceSequence (time + delta)
 
-        _ ->
+        Finished _ ->
             dice
 
 
@@ -106,66 +128,58 @@ ithElementAtPercentDone percentDone =
     truncate (percentDone * (2 * spins + 1) / 2)
 
 
-dieOne : String
-dieOne =
-    "Dice-1-b.svg"
+getUrl : DieFace -> String
+getUrl face =
+    case face of
+        One ->
+            "Dice-1-b.svg"
 
+        Two ->
+            "Dice-2-b.svg"
 
-dieTwo : String
-dieTwo =
-    "Dice-2-b.svg"
+        Three ->
+            "Dice-3-b.svg"
 
+        Four ->
+            "Dice-4-b.svg"
 
-dieThree : String
-dieThree =
-    "Dice-3-b.svg"
+        Five ->
+            "Dice-5-b.svg"
 
-
-dieFour : String
-dieFour =
-    "Dice-4-b.svg"
-
-
-dieFive : String
-dieFive =
-    "Dice-5-b.svg"
-
-
-dieSix : String
-dieSix =
-    "Dice-6a-b.svg"
+        Six ->
+            "Dice-6a-b.svg"
 
 
 render : Dice -> Html msg
 render dice =
     let
-        renderDie : String -> Html msg
-        renderDie imageUrl =
-            img [ class "w-8 h-8", src imageUrl ] []
+        renderDie : DieFace -> Html msg
+        renderDie dieFace =
+            img [ class "w-8 h-8", src <| getUrl dieFace ] []
     in
     div [ class "w-64 h-64 bg-gray-700 rounded-lg border-black overflow-hidden" ]
         [ div [ class "w-full h-full flex flex-col justify-evenly" ]
             (case dice of
                 WaitingOnUser ->
                     [ div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDie dieOne
-                        , renderDie dieTwo
-                        , renderDie dieThree
+                        [ renderDie One
+                        , renderDie Two
+                        , renderDie Three
                         ]
                     , div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDie dieFour
-                        , renderDie dieFive
-                        , renderDie dieSix
+                        [ renderDie Four
+                        , renderDie Five
+                        , renderDie Six
                         ]
                     ]
 
-                SlideUp duration time ->
+                SlideUp result faceSequence time ->
                     let
-                        renderDieContainer : String -> Easing -> Float -> Html msg
-                        renderDieContainer imageUrl easingFn distance =
+                        renderDieContainer : DieFace -> Easing -> Float -> Html msg
+                        renderDieContainer dieFace easingFn distance =
                             let
                                 percentDone =
-                                    time / duration
+                                    time / slideDuration
 
                                 visualPercentDone =
                                     easingFn percentDone
@@ -176,24 +190,24 @@ render dice =
                                 topPxStyle =
                                     String.fromFloat topPx ++ "px"
                             in
-                            div [ class "relative w-8 h-8" ] [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie imageUrl ] ]
+                            div [ class "relative w-8 h-8" ] [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie dieFace ] ]
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDieContainer dieOne bezierSlideFn 500
-                        , renderDieContainer dieTwo bezierSlideFn2 500
-                        , renderDieContainer dieThree bezierSlideFn3 500
+                        [ renderDieContainer One bezierSlideFn 500
+                        , renderDieContainer Two bezierSlideFn2 500
+                        , renderDieContainer Three bezierSlideFn3 500
                         ]
                     , div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDieContainer dieFour bezierSlideFn3 400
-                        , renderDieContainer dieFive bezierSlideFn 400
-                        , renderDieContainer dieSix bezierSlideFn2 400
+                        [ renderDieContainer Four bezierSlideFn3 400
+                        , renderDieContainer Five bezierSlideFn 400
+                        , renderDieContainer Six bezierSlideFn2 400
                         ]
                     ]
 
-                SpinAnimation duration time ->
+                SpinAnimation result faceSequence time ->
                     let
                         percentDone =
-                            time / duration
+                            time / spinDuration
 
                         visualPercentDone =
                             bezierSpinFn2 percentDone
@@ -207,37 +221,37 @@ render dice =
                         i =
                             ithElementAtPercentDone visualPercentDone
 
-                        imageUrl =
+                        dieFace =
                             case modBy 6 i of
                                 0 ->
-                                    dieOne
+                                    One
 
                                 1 ->
-                                    dieTwo
+                                    Two
 
                                 2 ->
-                                    dieThree
+                                    Three
 
                                 3 ->
-                                    dieFour
+                                    Four
 
                                 4 ->
-                                    dieFive
+                                    Five
 
                                 _ ->
-                                    dieSix
+                                    Six
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
                         [ div [ class "relative w-8 h-8" ]
-                            [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie imageUrl ]
+                            [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie dieFace ]
                             ]
                         ]
                     ]
 
-                Finished ->
+                Finished result ->
                     [ div [ class "flex w-full justify-evenly relative" ]
                         [ div [ class "relative w-8 h-8" ]
-                            [ renderDie "Dice-1-b.svg"
+                            [ renderDie result
                             ]
                         ]
                     ]
