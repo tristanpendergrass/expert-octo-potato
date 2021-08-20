@@ -3,15 +3,47 @@ module Main exposing (main)
 import Basics.Extra
 import Browser
 import Browser.Events
+import Dice exposing (Dice(..))
 import Ease exposing (Easing)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Random
 
 
 main : Program () Model Msg
 main =
     Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
+
+
+dieOne : String
+dieOne =
+    "Dice-1-b.svg"
+
+
+dieTwo : String
+dieTwo =
+    "Dice-2-b.svg"
+
+
+dieThree : String
+dieThree =
+    "Dice-3-b.svg"
+
+
+dieFour : String
+dieFour =
+    "Dice-4-b.svg"
+
+
+dieFive : String
+dieFive =
+    "Dice-5-b.svg"
+
+
+dieSix : String
+dieSix =
+    "Dice-6a-b.svg"
 
 
 
@@ -84,24 +116,19 @@ getIthElement percentDone =
     truncate (percentDone * (2 * n + 1) / 2)
 
 
-type DiceRoll
-    = SlideUp Float Float
-    | SpinAnimation Float Float
-    | Finished
-
-
 
 -- MODEL
 
 
-type Model
-    = WaitingOnUser
-    | Rolling DiceRoll
+type alias Model =
+    { seed : Random.Seed
+    , dice : Dice
+    }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( WaitingOnUser, Cmd.none )
+    ( { seed = Random.initialSeed 0, dice = Dice.create }, Cmd.none )
 
 
 
@@ -113,34 +140,24 @@ type Msg
     | Roll
 
 
+setDice : Dice -> Model -> Model
+setDice dice model =
+    { model | dice = dice }
+
+
+updateDice : (Dice -> Dice) -> Model -> Model
+updateDice fn model =
+    { model | dice = fn model.dice }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        noOp =
-            ( model, Cmd.none )
-    in
     case msg of
         Roll ->
-            ( Rolling (SlideUp 1000 0), Cmd.none )
+            ( setDice Dice.roll model, Cmd.none )
 
         HandleAnimationFrameDelta delta ->
-            case model of
-                Rolling (SlideUp length time) ->
-                    if time >= length then
-                        ( Rolling (SpinAnimation 3000 0), Cmd.none )
-
-                    else
-                        ( Rolling (SlideUp length (time + delta)), Cmd.none )
-
-                Rolling (SpinAnimation length time) ->
-                    if time >= length then
-                        ( Rolling Finished, Cmd.none )
-
-                    else
-                        ( Rolling (SpinAnimation length (time + delta)), Cmd.none )
-
-                _ ->
-                    noOp
+            ( updateDice (Dice.handleAnimationFrameDelta delta) model, Cmd.none )
 
 
 
@@ -165,8 +182,21 @@ renderDiceArea model =
     in
     div [ class "w-64 h-64 bg-gray-700 rounded-lg border-black overflow-hidden" ]
         [ div [ class "w-full h-full flex flex-col justify-evenly" ]
-            (case model of
-                Rolling (SlideUp duration time) ->
+            (case model.dice of
+                WaitingOnUser ->
+                    [ div [ class "flex w-full justify-evenly relative" ]
+                        [ renderDie dieOne
+                        , renderDie dieTwo
+                        , renderDie dieThree
+                        ]
+                    , div [ class "flex w-full justify-evenly relative" ]
+                        [ renderDie dieFour
+                        , renderDie dieFive
+                        , renderDie dieSix
+                        ]
+                    ]
+
+                SlideUp duration time ->
                     let
                         renderDieContainer : String -> Easing -> Float -> Html Msg
                         renderDieContainer imageUrl easingFn distance =
@@ -186,18 +216,18 @@ renderDiceArea model =
                             div [ class "relative w-8 h-8" ] [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie imageUrl ] ]
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDieContainer "Dice-1-b.svg" bezierSlideFn 500
-                        , renderDieContainer "Dice-2-b.svg" bezierSlideFn2 500
-                        , renderDieContainer "Dice-3-b.svg" bezierSlideFn3 500
+                        [ renderDieContainer dieOne bezierSlideFn 500
+                        , renderDieContainer dieTwo bezierSlideFn2 500
+                        , renderDieContainer dieThree bezierSlideFn3 500
                         ]
                     , div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDieContainer "Dice-4-b.svg" bezierSlideFn3 400
-                        , renderDieContainer "Dice-5-b.svg" bezierSlideFn 400
-                        , renderDieContainer "Dice-6a-b.svg" bezierSlideFn2 400
+                        [ renderDieContainer dieFour bezierSlideFn3 400
+                        , renderDieContainer dieFive bezierSlideFn 400
+                        , renderDieContainer dieSix bezierSlideFn2 400
                         ]
                     ]
 
-                Rolling (SpinAnimation duration time) ->
+                SpinAnimation duration time ->
                     let
                         percentDone =
                             time / duration
@@ -217,22 +247,22 @@ renderDiceArea model =
                         imageUrl =
                             case modBy 5 i of
                                 0 ->
-                                    "Dice-1-b.svg"
+                                    dieOne
 
                                 1 ->
-                                    "Dice-2-b.svg"
+                                    dieTwo
 
                                 2 ->
-                                    "Dice-3-b.svg"
+                                    dieThree
 
                                 3 ->
-                                    "Dice-4-b.svg"
+                                    dieFour
 
                                 4 ->
-                                    "Dice-5-b.svg"
+                                    dieFive
 
                                 _ ->
-                                    "Dice-6a-b.svg"
+                                    dieSix
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
                         [ div [ class "relative w-8 h-8" ]
@@ -241,24 +271,11 @@ renderDiceArea model =
                         ]
                     ]
 
-                Rolling Finished ->
+                Finished ->
                     [ div [ class "flex w-full justify-evenly relative" ]
                         [ div [ class "relative w-8 h-8" ]
                             [ renderDie "Dice-1-b.svg"
                             ]
-                        ]
-                    ]
-
-                WaitingOnUser ->
-                    [ div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDie "Dice-1-b.svg"
-                        , renderDie "Dice-2-b.svg"
-                        , renderDie "Dice-3-b.svg"
-                        ]
-                    , div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDie "Dice-4-b.svg"
-                        , renderDie "Dice-5-b.svg"
-                        , renderDie "Dice-6a-b.svg"
                         ]
                     ]
             )
