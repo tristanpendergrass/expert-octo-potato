@@ -215,7 +215,7 @@ renderDiceArea model =
                             getIthElement visualPercentDone
 
                         imageUrl =
-                            case modBy 6 i of
+                            case modBy 5 i of
                                 0 ->
                                     "Dice-1-b.svg"
 
