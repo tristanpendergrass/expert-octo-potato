@@ -33,6 +33,21 @@ bezierSlideFn3 =
     Ease.bezier 0.02 0.01 0.93 -0.53
 
 
+spins : number
+spins =
+    20
+
+
+bezierSpinFn : Easing
+bezierSpinFn =
+    Ease.bezier 0 1.01 0 1.0
+
+
+bezierSpinFn2 : Easing
+bezierSpinFn2 =
+    Ease.bezier 0.34 0.67 0.64 1
+
+
 getTopDuringSpin : Float -> Float
 getTopDuringSpin percentDone =
     let
@@ -40,7 +55,7 @@ getTopDuringSpin percentDone =
             144
 
         n =
-            30
+            spins
 
         top =
             -1 * x
@@ -64,7 +79,7 @@ getIthElement : Float -> Int
 getIthElement percentDone =
     let
         n =
-            30
+            spins
     in
     truncate (percentDone * (2 * n + 1) / 2)
 
@@ -188,7 +203,7 @@ renderDiceArea model =
                             time / duration
 
                         visualPercentDone =
-                            Ease.bezier 0 1.01 0 1.0 percentDone
+                            bezierSpinFn2 percentDone
 
                         topPx =
                             getTopDuringSpin visualPercentDone
