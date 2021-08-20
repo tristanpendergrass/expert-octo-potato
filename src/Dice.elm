@@ -79,40 +79,31 @@ bezierSpinFn2 =
     Ease.bezier 0.34 0.67 0.64 1
 
 
-getTopDuringSpin : Float -> Float
-getTopDuringSpin percentDone =
+topPxAtPercentDone : Float -> Float
+topPxAtPercentDone percentDone =
     let
         x =
             144
 
-        n =
-            spins
-
         top =
             -1 * x
 
-        numerator =
-            x * (2 * n + 1)
+        totalLength : number
+        totalLength =
+            2 * x * spins + x
 
-        denominator =
-            1
-
-        totalShiftDown =
-            percentDone * (numerator / denominator)
+        lengthShiftedDown =
+            percentDone * totalLength
 
         shiftDown =
-            Basics.Extra.fractionalModBy (2 * x) totalShiftDown
+            Basics.Extra.fractionalModBy (2 * x) lengthShiftedDown
     in
     top + shiftDown
 
 
-getIthElement : Float -> Int
-getIthElement percentDone =
-    let
-        n =
-            spins
-    in
-    truncate (percentDone * (2 * n + 1) / 2)
+ithElementAtPercentDone : Float -> Int
+ithElementAtPercentDone percentDone =
+    truncate (percentDone * (2 * spins + 1) / 2)
 
 
 dieOne : String
@@ -208,16 +199,16 @@ render dice =
                             bezierSpinFn2 percentDone
 
                         topPx =
-                            getTopDuringSpin visualPercentDone
+                            topPxAtPercentDone visualPercentDone
 
                         topPxStyle =
                             String.fromFloat topPx ++ "px"
 
                         i =
-                            getIthElement visualPercentDone
+                            ithElementAtPercentDone visualPercentDone
 
                         imageUrl =
-                            case modBy 5 i of
+                            case modBy 6 i of
                                 0 ->
                                     dieOne
 
