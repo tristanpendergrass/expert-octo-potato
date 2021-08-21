@@ -28,8 +28,8 @@ type DieFace
 
 type Dice
     = WaitingOnUser
-    | SlideUp DieFace (List DieFace) Float
-    | SpinAnimation DieFace (List DieFace) Float
+    | SlideUp Float DieFace (List DieFace)
+    | SpinAnimation Float DieFace (List DieFace)
     | Finished DieFace
 
 
@@ -40,7 +40,14 @@ create =
 
 roll : Random.Generator Dice
 roll =
-    Random.constant (SlideUp Six [ One, Two, Three ] 0)
+    let
+        dieFaceGenerator =
+            Random.uniform One [ One, Two, Three, Four, Five, Six ]
+
+        faceSequenceGenerator =
+            Random.list spins dieFaceGenerator
+    in
+    Random.map2 (SlideUp 0) dieFaceGenerator faceSequenceGenerator
 
 
 handleAnimationFrameDelta : Float -> Dice -> Dice
@@ -49,19 +56,19 @@ handleAnimationFrameDelta delta dice =
         WaitingOnUser ->
             dice
 
-        SlideUp result faceSequence time ->
+        SlideUp time result faceSequence ->
             if time >= slideDuration then
-                SpinAnimation result faceSequence 0
+                SpinAnimation 0 result faceSequence
 
             else
-                SlideUp result faceSequence (time + delta)
+                SlideUp (time + delta) result faceSequence
 
-        SpinAnimation result faceSequence time ->
+        SpinAnimation time result faceSequence ->
             if time >= spinDuration then
                 Finished result
 
             else
-                SpinAnimation result faceSequence (time + delta)
+                SpinAnimation (time + delta) result faceSequence
 
         Finished _ ->
             dice
@@ -173,7 +180,7 @@ render dice =
                         ]
                     ]
 
-                SlideUp result faceSequence time ->
+                SlideUp time result faceSequence ->
                     let
                         renderDieContainer : DieFace -> Easing -> Float -> Html msg
                         renderDieContainer dieFace easingFn distance =
@@ -204,7 +211,7 @@ render dice =
                         ]
                     ]
 
-                SpinAnimation result faceSequence time ->
+                SpinAnimation time result faceSequence ->
                     let
                         percentDone =
                             time / spinDuration
