@@ -4,6 +4,7 @@ import Basics.Extra
 import Ease exposing (Easing)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import List.Extra
 import Random
 
 
@@ -229,24 +230,8 @@ render dice =
                             ithElementAtPercentDone visualPercentDone
 
                         dieFace =
-                            case modBy 6 i of
-                                0 ->
-                                    One
-
-                                1 ->
-                                    Two
-
-                                2 ->
-                                    Three
-
-                                3 ->
-                                    Four
-
-                                4 ->
-                                    Five
-
-                                _ ->
-                                    Six
+                            List.Extra.getAt i faceSequence
+                                |> Maybe.withDefault One
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
                         [ div [ class "relative w-8 h-8" ]

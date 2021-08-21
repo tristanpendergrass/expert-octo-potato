@@ -11,7 +11,8 @@
             "elm/html": "1.0.0",
             "elm/random": "1.0.0",
             "elm-community/basics-extra": "4.1.0",
-            "elm-community/easing-functions": "2.0.0"
+            "elm-community/easing-functions": "2.0.0",
+            "elm-community/list-extra": "8.4.0"
         },
         "indirect": {
             "elm/json": "1.1.3",
