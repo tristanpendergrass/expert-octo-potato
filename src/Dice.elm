@@ -85,8 +85,15 @@ dieFaceSequence size =
 
 roll : Random.Generator Dice
 roll =
-    dieFaceSequence spins
-        |> Random.map (\(Nonempty result sequence) -> SlideUp 0 result sequence)
+    dieFaceSequence (spins + 1)
+        |> Random.map
+            (\sequence ->
+                let
+                    result =
+                        List.Nonempty.last sequence
+                in
+                SlideUp 0 result (List.Nonempty.toList sequence)
+            )
 
 
 handleAnimationFrameDelta : Float -> Dice -> Dice
@@ -268,7 +275,7 @@ render dice =
                             ithElementAtPercentDone visualPercentDone
 
                         dieFace =
-                            List.Extra.getAt i (Debug.log "faceSequence" faceSequence)
+                            List.Extra.getAt i faceSequence
                                 |> Maybe.withDefault One
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
