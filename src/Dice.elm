@@ -39,26 +39,34 @@ create =
     WaitingOnUser
 
 
-dieFacesExcluding : DieFace -> ( DieFace, List DieFace )
-dieFacesExcluding dieFace =
-    case dieFace of
-        One ->
-            ( Two, [ Three, Four, Five, Six ] )
+dieFaceExcluding : DieFace -> Random.Generator DieFace
+dieFaceExcluding dieFace =
+    let
+        ( head, list ) =
+            case dieFace of
+                One ->
+                    ( Two, [ Three, Four, Five, Six ] )
 
-        Two ->
-            ( One, [ Three, Four, Five, Six ] )
+                Two ->
+                    ( One, [ Three, Four, Five, Six ] )
 
-        Three ->
-            ( Two, [ One, Four, Five, Six ] )
+                Three ->
+                    ( Two, [ One, Four, Five, Six ] )
 
-        Four ->
-            ( Two, [ One, Three, Five, Six ] )
+                Four ->
+                    ( Two, [ One, Three, Five, Six ] )
 
-        Five ->
-            ( Two, [ One, Three, Four, Six ] )
+                Five ->
+                    ( Two, [ One, Three, Four, Six ] )
 
-        Six ->
-            ( Two, [ One, Three, Four, Five ] )
+                Six ->
+                    ( Two, [ One, Three, Four, Five ] )
+    in
+    Random.uniform head list
+
+
+
+-- TODO: Refactor to use non-empty list as return type (and argument?)
 
 
 nonConsecutiveList : Int -> DieFace -> List DieFace -> Random.Generator (List DieFace)
@@ -67,14 +75,8 @@ nonConsecutiveList size head candidates =
         Random.constant []
 
     else if size == 1 then
-        let
-            ( filteredListHead, filteredList ) =
-                dieFacesExcluding head
-
-            nextItem =
-                Random.uniform filteredListHead filteredList
-        in
-        Random.map2 (::) nextItem (nonConsecutiveList (size - 1) head candidates)
+        dieFaceExcluding head
+            |> Random.map List.singleton
 
     else
         nonConsecutiveList (size - 1) head candidates
@@ -83,11 +85,8 @@ nonConsecutiveList size head candidates =
                     case list of
                         nextItem :: _ ->
                             let
-                                ( filteredCandidatesHead, filteredCandidates ) =
-                                    dieFacesExcluding nextItem
-
                                 currentItem =
-                                    Random.uniform filteredCandidatesHead filteredCandidates
+                                    dieFaceExcluding nextItem
                             in
                             Random.map (\item -> item :: list) currentItem
 
