@@ -39,6 +39,28 @@ create =
     WaitingOnUser
 
 
+dieFacesExcluding : DieFace -> ( DieFace, List DieFace )
+dieFacesExcluding dieFace =
+    case dieFace of
+        One ->
+            ( Two, [ Three, Four, Five, Six ] )
+
+        Two ->
+            ( One, [ Three, Four, Five, Six ] )
+
+        Three ->
+            ( Two, [ One, Four, Five, Six ] )
+
+        Four ->
+            ( Two, [ One, Three, Five, Six ] )
+
+        Five ->
+            ( Two, [ One, Three, Four, Six ] )
+
+        Six ->
+            ( Two, [ One, Three, Four, Five ] )
+
+
 nonConsecutiveList : Int -> DieFace -> List DieFace -> Random.Generator (List DieFace)
 nonConsecutiveList size head candidates =
     if size == 0 then
@@ -46,11 +68,11 @@ nonConsecutiveList size head candidates =
 
     else if size == 1 then
         let
-            filteredList =
-                List.filter ((/=) head) candidates
+            ( filteredListHead, filteredList ) =
+                dieFacesExcluding head
 
             nextItem =
-                Random.uniform head filteredList
+                Random.uniform filteredListHead filteredList
         in
         Random.map2 (::) nextItem (nonConsecutiveList (size - 1) head candidates)
 
@@ -61,11 +83,11 @@ nonConsecutiveList size head candidates =
                     case list of
                         nextItem :: _ ->
                             let
-                                filteredCandidates =
-                                    List.filter ((/=) nextItem) candidates
+                                ( filteredCandidatesHead, filteredCandidates ) =
+                                    dieFacesExcluding nextItem
 
                                 currentItem =
-                                    Random.uniform nextItem filteredCandidates
+                                    Random.uniform filteredCandidatesHead filteredCandidates
                             in
                             Random.map (\item -> item :: list) currentItem
 
@@ -87,13 +109,6 @@ pseudoRandomUniform size default list =
 
 roll : Random.Generator Dice
 roll =
-    -- let
-    --     dieFaceGenerator =
-    --         Random.uniform One [ One, Two, Three, Four, Five, Six ]
-    --     faceSequenceGenerator =
-    --         Random.list spins dieFaceGenerator
-    -- in
-    -- Random.map2 (SlideUp 0) dieFaceGenerator faceSequenceGenerator
     pseudoRandomUniform spins One [ One, Two, Three, Four, Five, Six ]
         |> Random.map (\( face, sequence ) -> SlideUp 0 face sequence)
 
