@@ -69,17 +69,19 @@ dieFaceExcluding dieFace =
 -- TODO: Refactor to use non-empty list as return type (and argument?)
 
 
-nonConsecutiveList : Int -> DieFace -> List DieFace -> Random.Generator (List DieFace)
-nonConsecutiveList size head candidates =
+dieFaceSequence : Int -> DieFace -> List DieFace -> Random.Generator (List DieFace)
+dieFaceSequence size endResult candidates =
     if size == 0 then
         Random.constant []
 
     else if size == 1 then
-        dieFaceExcluding head
+        -- The last die face in the sequence should not match a certain die face (which is the end result of the larger sequence)
+        dieFaceExcluding endResult
             |> Random.map List.singleton
 
     else
-        nonConsecutiveList (size - 1) head candidates
+        -- Each other die face in the sequence should not match the previous one to look more random when spinning
+        dieFaceSequence (size - 1) endResult candidates
             |> Random.andThen
                 (\list ->
                     case list of
@@ -101,7 +103,7 @@ pseudoRandomUniform size default list =
     Random.uniform default list
         |> Random.andThen
             (\result ->
-                nonConsecutiveList size result list
+                dieFaceSequence size result list
                     |> Random.map (\resultList -> ( result, resultList ))
             )
 
