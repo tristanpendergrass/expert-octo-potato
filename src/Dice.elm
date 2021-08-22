@@ -35,8 +35,8 @@ dieFaces =
 
 type Dice
     = WaitingOnUser
-    | SlideUp Float DieFace (List DieFace)
-    | SpinAnimation Float DieFace (List DieFace)
+    | SlideUp Float (Nonempty DieFace)
+    | SpinAnimation Float (Nonempty DieFace)
     | Finished DieFace
 
 
@@ -86,14 +86,7 @@ dieFaceSequence size =
 roll : Random.Generator Dice
 roll =
     dieFaceSequence (spins + 1)
-        |> Random.map
-            (\sequence ->
-                let
-                    result =
-                        List.Nonempty.last sequence
-                in
-                SlideUp 0 result (List.Nonempty.toList sequence)
-            )
+        |> Random.map (SlideUp 0)
 
 
 handleAnimationFrameDelta : Float -> Dice -> Dice
@@ -102,19 +95,19 @@ handleAnimationFrameDelta delta dice =
         WaitingOnUser ->
             dice
 
-        SlideUp time result faceSequence ->
+        SlideUp time faceSequence ->
             if time >= slideDuration then
-                SpinAnimation 0 result faceSequence
+                SpinAnimation 0 faceSequence
 
             else
-                SlideUp (time + delta) result faceSequence
+                SlideUp (time + delta) faceSequence
 
-        SpinAnimation time result faceSequence ->
+        SpinAnimation time faceSequence ->
             if time >= spinDuration then
-                Finished result
+                Finished (List.Nonempty.last faceSequence)
 
             else
-                SpinAnimation (time + delta) result faceSequence
+                SpinAnimation (time + delta) faceSequence
 
         Finished _ ->
             dice
@@ -226,7 +219,7 @@ render dice =
                         ]
                     ]
 
-                SlideUp time result faceSequence ->
+                SlideUp time faceSequence ->
                     let
                         renderDieContainer : DieFace -> Easing -> Float -> Html msg
                         renderDieContainer dieFace easingFn distance =
@@ -257,7 +250,7 @@ render dice =
                         ]
                     ]
 
-                SpinAnimation time result faceSequence ->
+                SpinAnimation time faceSequence ->
                     let
                         percentDone =
                             time / spinDuration
@@ -275,8 +268,7 @@ render dice =
                             ithElementAtPercentDone visualPercentDone
 
                         dieFace =
-                            List.Extra.getAt i faceSequence
-                                |> Maybe.withDefault One
+                            List.Nonempty.get i faceSequence
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
                         [ div [ class "relative w-8 h-8" ]
