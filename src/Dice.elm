@@ -39,16 +39,63 @@ create =
     WaitingOnUser
 
 
+nonConsecutiveList : Int -> DieFace -> List DieFace -> Random.Generator (List DieFace)
+nonConsecutiveList size head candidates =
+    if size == 0 then
+        Random.constant []
+
+    else if size == 1 then
+        let
+            filteredList =
+                List.filter ((/=) head) candidates
+
+            nextItem =
+                Random.uniform head filteredList
+        in
+        Random.map2 (::) nextItem (nonConsecutiveList (size - 1) head candidates)
+
+    else
+        nonConsecutiveList (size - 1) head candidates
+            |> Random.andThen
+                (\list ->
+                    case list of
+                        nextItem :: _ ->
+                            let
+                                filteredCandidates =
+                                    List.filter ((/=) nextItem) candidates
+
+                                currentItem =
+                                    Random.uniform nextItem filteredCandidates
+                            in
+                            Random.map (\item -> item :: list) currentItem
+
+                        _ ->
+                            -- not reachable
+                            Random.constant []
+                )
+
+
+pseudoRandomUniform : Int -> DieFace -> List DieFace -> Random.Generator ( DieFace, List DieFace )
+pseudoRandomUniform size default list =
+    Random.uniform default list
+        |> Random.andThen
+            (\result ->
+                nonConsecutiveList size result list
+                    |> Random.map (\resultList -> ( result, resultList ))
+            )
+
+
 roll : Random.Generator Dice
 roll =
-    let
-        dieFaceGenerator =
-            Random.uniform One [ One, Two, Three, Four, Five, Six ]
-
-        faceSequenceGenerator =
-            Random.list spins dieFaceGenerator
-    in
-    Random.map2 (SlideUp 0) dieFaceGenerator faceSequenceGenerator
+    -- let
+    --     dieFaceGenerator =
+    --         Random.uniform One [ One, Two, Three, Four, Five, Six ]
+    --     faceSequenceGenerator =
+    --         Random.list spins dieFaceGenerator
+    -- in
+    -- Random.map2 (SlideUp 0) dieFaceGenerator faceSequenceGenerator
+    pseudoRandomUniform spins One [ One, Two, Three, Four, Five, Six ]
+        |> Random.map (\( face, sequence ) -> SlideUp 0 face sequence)
 
 
 handleAnimationFrameDelta : Float -> Dice -> Dice
@@ -230,7 +277,7 @@ render dice =
                             ithElementAtPercentDone visualPercentDone
 
                         dieFace =
-                            List.Extra.getAt i faceSequence
+                            List.Extra.getAt i (Debug.log "faceSequence" faceSequence)
                                 |> Maybe.withDefault One
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
