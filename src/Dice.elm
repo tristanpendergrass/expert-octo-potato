@@ -45,30 +45,26 @@ create =
     WaitingOnUser
 
 
-dieFaceExcluding : DieFace -> Random.Generator DieFace
-dieFaceExcluding dieFace =
-    let
-        ( head, list ) =
-            case dieFace of
-                One ->
-                    ( Two, [ Three, Four, Five, Six ] )
+dieFacesWithout : DieFace -> Nonempty DieFace
+dieFacesWithout dieFace =
+    case dieFace of
+        One ->
+            Nonempty Two [ Three, Four, Five, Six ]
 
-                Two ->
-                    ( One, [ Three, Four, Five, Six ] )
+        Two ->
+            Nonempty One [ Three, Four, Five, Six ]
 
-                Three ->
-                    ( Two, [ One, Four, Five, Six ] )
+        Three ->
+            Nonempty One [ Two, Four, Five, Six ]
 
-                Four ->
-                    ( Two, [ One, Three, Five, Six ] )
+        Four ->
+            Nonempty One [ Two, Three, Five, Six ]
 
-                Five ->
-                    ( Two, [ One, Three, Four, Six ] )
+        Five ->
+            Nonempty One [ Two, Three, Four, Six ]
 
-                Six ->
-                    ( Two, [ One, Three, Four, Five ] )
-    in
-    Random.uniform head list
+        Six ->
+            Nonempty One [ Two, Three, Four, Five ]
 
 
 dieFaceSequence : Int -> Random.Generator (Nonempty DieFace)
@@ -81,7 +77,9 @@ dieFaceSequence size =
         dieFaceSequence (size - 1)
             |> Random.andThen
                 (\(Nonempty head tail) ->
-                    Random.map (\item -> Nonempty item (head :: tail)) (dieFaceExcluding head)
+                    dieFacesWithout head
+                        |> List.Nonempty.sample
+                        |> Random.map (\item -> Nonempty item (head :: tail))
                 )
 
 
