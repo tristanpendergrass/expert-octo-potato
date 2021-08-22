@@ -5,6 +5,7 @@ import Ease exposing (Easing)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import List.Extra
+import List.Nonempty exposing (Nonempty(..))
 import Random
 
 
@@ -25,6 +26,11 @@ type DieFace
     | Four
     | Five
     | Six
+
+
+dieFaces : Nonempty DieFace
+dieFaces =
+    Nonempty One [ Two, Three, Four, Five, Six ]
 
 
 type Dice
@@ -65,53 +71,24 @@ dieFaceExcluding dieFace =
     Random.uniform head list
 
 
-
--- TODO: Refactor to use non-empty list as return type (and argument?)
-
-
-dieFaceSequence : Int -> DieFace -> List DieFace -> Random.Generator (List DieFace)
-dieFaceSequence size endResult candidates =
-    if size == 0 then
-        Random.constant []
-
-    else if size == 1 then
-        -- The last die face in the sequence should not match a certain die face (which is the end result of the larger sequence)
-        dieFaceExcluding endResult
-            |> Random.map List.singleton
+dieFaceSequence : Int -> Random.Generator (Nonempty DieFace)
+dieFaceSequence size =
+    if size <= 1 then
+        List.Nonempty.sample dieFaces
+            |> Random.map List.Nonempty.singleton
 
     else
-        -- Each other die face in the sequence should not match the previous one to look more random when spinning
-        dieFaceSequence (size - 1) endResult candidates
+        dieFaceSequence (size - 1)
             |> Random.andThen
-                (\list ->
-                    case list of
-                        nextItem :: _ ->
-                            let
-                                currentItem =
-                                    dieFaceExcluding nextItem
-                            in
-                            Random.map (\item -> item :: list) currentItem
-
-                        _ ->
-                            -- not reachable
-                            Random.constant []
+                (\(Nonempty head tail) ->
+                    Random.map (\item -> Nonempty item (head :: tail)) (dieFaceExcluding head)
                 )
-
-
-pseudoRandomUniform : Int -> DieFace -> List DieFace -> Random.Generator ( DieFace, List DieFace )
-pseudoRandomUniform size default list =
-    Random.uniform default list
-        |> Random.andThen
-            (\result ->
-                dieFaceSequence size result list
-                    |> Random.map (\resultList -> ( result, resultList ))
-            )
 
 
 roll : Random.Generator Dice
 roll =
-    pseudoRandomUniform spins One [ One, Two, Three, Four, Five, Six ]
-        |> Random.map (\( face, sequence ) -> SlideUp 0 face sequence)
+    dieFaceSequence spins
+        |> Random.map (\(Nonempty result sequence) -> SlideUp 0 result sequence)
 
 
 handleAnimationFrameDelta : Float -> Dice -> Dice
