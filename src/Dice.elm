@@ -4,19 +4,8 @@ import Basics.Extra
 import Ease exposing (Easing)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import List.Extra
 import List.Nonempty exposing (Nonempty(..))
 import Random
-
-
-slideDuration : number
-slideDuration =
-    1000
-
-
-spinDuration : number
-spinDuration =
-    2000
 
 
 type DieFace
@@ -40,9 +29,30 @@ type Dice
     | Finished DieFace
 
 
+numSpins : number
+numSpins =
+    20
+
+
+slideDuration : number
+slideDuration =
+    1000
+
+
+spinDuration : number
+spinDuration =
+    2000
+
+
 create : Dice
 create =
     WaitingOnUser
+
+
+roll : Random.Generator Dice
+roll =
+    dieFaceSequence (numSpins + 1)
+        |> Random.map (SlideUp 0)
 
 
 dieFacesWithout : DieFace -> Nonempty DieFace
@@ -81,12 +91,6 @@ dieFaceSequence size =
                         |> List.Nonempty.sample
                         |> Random.map (\item -> Nonempty item (head :: tail))
                 )
-
-
-roll : Random.Generator Dice
-roll =
-    dieFaceSequence (spins + 1)
-        |> Random.map (SlideUp 0)
 
 
 handleAnimationFrameDelta : Float -> Dice -> Dice
@@ -132,18 +136,8 @@ bezierSlideFn3 =
     Ease.bezier 0.02 0.01 0.93 -0.53
 
 
-spins : number
-spins =
-    20
-
-
 bezierSpinFn : Easing
 bezierSpinFn =
-    Ease.bezier 0 1.01 0 1.0
-
-
-bezierSpinFn2 : Easing
-bezierSpinFn2 =
     Ease.bezier 0.34 0.67 0.64 1
 
 
@@ -158,7 +152,7 @@ topPxAtPercentDone percentDone =
 
         totalLength : number
         totalLength =
-            2 * x * spins + x
+            2 * x * numSpins + x
 
         lengthShiftedDown =
             percentDone * totalLength
@@ -171,7 +165,7 @@ topPxAtPercentDone percentDone =
 
 ithElementAtPercentDone : Float -> Int
 ithElementAtPercentDone percentDone =
-    truncate (percentDone * (2 * spins + 1) / 2)
+    truncate (percentDone * (2 * numSpins + 1) / 2)
 
 
 getUrl : DieFace -> String
@@ -219,7 +213,7 @@ render dice =
                         ]
                     ]
 
-                SlideUp time faceSequence ->
+                SlideUp time _ ->
                     let
                         renderDieContainer : DieFace -> Easing -> Float -> Html msg
                         renderDieContainer dieFace easingFn distance =
@@ -256,7 +250,7 @@ render dice =
                             time / spinDuration
 
                         visualPercentDone =
-                            bezierSpinFn2 percentDone
+                            bezierSpinFn percentDone
 
                         topPx =
                             topPxAtPercentDone visualPercentDone
