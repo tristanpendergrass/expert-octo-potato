@@ -29,9 +29,14 @@ type Dice
     | Finished DieFace
 
 
+x : number
+x =
+    200
+
+
 numSpins : number
 numSpins =
-    20
+    15
 
 
 slideDuration : number
@@ -41,7 +46,7 @@ slideDuration =
 
 spinDuration : number
 spinDuration =
-    2000
+    3000
 
 
 create : Dice
@@ -144,9 +149,6 @@ bezierSpinFn =
 topPxAtPercentDone : Float -> Float
 topPxAtPercentDone percentDone =
     let
-        x =
-            144
-
         top =
             -1 * x
 
@@ -196,6 +198,10 @@ render dice =
         renderDie : DieFace -> Html msg
         renderDie dieFace =
             img [ class "w-8 h-8", src <| getUrl dieFace ] []
+
+        renderDieLarge : DieFace -> Html msg
+        renderDieLarge dieFace =
+            img [ class "w-16 h-16", src <| getUrl dieFace ] []
     in
     div [ class "w-64 h-64 bg-gray-700 rounded-lg border-black overflow-hidden" ]
         [ div [ class "w-full h-full flex flex-col justify-evenly" ]
@@ -265,16 +271,16 @@ render dice =
                             List.Nonempty.get i faceSequence
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
-                        [ div [ class "relative w-8 h-8" ]
-                            [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie dieFace ]
+                        [ div [ class "relative w-16 h-16" ]
+                            [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDieLarge dieFace ]
                             ]
                         ]
                     ]
 
                 Finished result ->
                     [ div [ class "flex w-full justify-evenly relative" ]
-                        [ div [ class "relative w-8 h-8" ]
-                            [ renderDie result
+                        [ div [ class "relative w-16 h-16" ]
+                            [ renderDieLarge result
                             ]
                         ]
                     ]
