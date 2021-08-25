@@ -29,11 +29,6 @@ type Dice
     | Finished DieFace
 
 
-x : number
-x =
-    200
-
-
 numSpins : number
 numSpins =
     15
@@ -126,6 +121,21 @@ handleAnimationFrameDelta delta dice =
 -- VIEW
 
 
+dieDimensions : { small : String, large : String }
+dieDimensions =
+    { small = "w-8 h-8", large = "w-12 h-12" }
+
+
+
+-- Distance between each die face in spinner
+
+
+spinDistance : number
+spinDistance =
+    -- 144
+    200
+
+
 bezierSlideFn : Easing
 bezierSlideFn =
     Ease.bezier 0.02 0.01 1 -0.53
@@ -150,17 +160,17 @@ topPxAtPercentDone : Float -> Float
 topPxAtPercentDone percentDone =
     let
         top =
-            -1 * x
+            -1 * spinDistance
 
         totalLength : number
         totalLength =
-            2 * x * numSpins + x
+            2 * spinDistance * numSpins + spinDistance
 
         lengthShiftedDown =
             percentDone * totalLength
 
         shiftDown =
-            Basics.Extra.fractionalModBy (2 * x) lengthShiftedDown
+            Basics.Extra.fractionalModBy (2 * spinDistance) lengthShiftedDown
     in
     top + shiftDown
 
@@ -197,11 +207,11 @@ render dice =
     let
         renderDie : DieFace -> Html msg
         renderDie dieFace =
-            img [ class "w-8 h-8", src <| getUrl dieFace ] []
+            img [ class dieDimensions.small, src <| getUrl dieFace ] []
 
         renderDieLarge : DieFace -> Html msg
         renderDieLarge dieFace =
-            img [ class "w-16 h-16", src <| getUrl dieFace ] []
+            img [ class dieDimensions.large, src <| getUrl dieFace ] []
     in
     div [ class "w-64 h-64 bg-gray-700 rounded-lg border-black overflow-hidden" ]
         [ div [ class "w-full h-full flex flex-col justify-evenly" ]
@@ -236,7 +246,7 @@ render dice =
                                 topPxStyle =
                                     String.fromFloat topPx ++ "px"
                             in
-                            div [ class "relative w-8 h-8" ] [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie dieFace ] ]
+                            div [ class "relative", class dieDimensions.small ] [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie dieFace ] ]
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
                         [ renderDieContainer One bezierSlideFn 500
@@ -271,7 +281,7 @@ render dice =
                             List.Nonempty.get i faceSequence
                     in
                     [ div [ class "flex w-full justify-evenly relative" ]
-                        [ div [ class "relative w-16 h-16" ]
+                        [ div [ class "relative", class dieDimensions.large ]
                             [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDieLarge dieFace ]
                             ]
                         ]
@@ -279,7 +289,7 @@ render dice =
 
                 Finished result ->
                     [ div [ class "flex w-full justify-evenly relative" ]
-                        [ div [ class "relative w-16 h-16" ]
+                        [ div [ class "relative", class dieDimensions.large ]
                             [ renderDieLarge result
                             ]
                         ]
