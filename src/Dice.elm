@@ -1,4 +1,4 @@
-module Dice exposing (Dice(..), create, handleAnimationFrameDelta, render, roll)
+module Dice exposing (Dice(..), create, handleAnimationFrameDelta, numberWasRolled, render, roll)
 
 import Basics.Extra
 import Ease exposing (Easing)
@@ -115,6 +115,20 @@ handleAnimationFrameDelta delta dice =
 
         Finished _ ->
             dice
+
+
+numberWasRolled : Float -> Dice -> Bool
+numberWasRolled delta dice =
+    case dice of
+        SpinAnimation time _ ->
+            if time >= spinDuration then
+                True
+
+            else
+                False
+
+        _ ->
+            False
 
 
 

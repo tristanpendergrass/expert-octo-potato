@@ -21,12 +21,18 @@ main =
 type alias Model =
     { seed : Random.Seed
     , dice : Dice
+    , money : Int
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { seed = Random.initialSeed 0, dice = Dice.create }, Cmd.none )
+    ( { seed = Random.initialSeed 0
+      , dice = Dice.create
+      , money = 0
+      }
+    , Cmd.none
+    )
 
 
 
@@ -53,6 +59,11 @@ updateDice fn model =
     { model | dice = fn model.dice }
 
 
+setMoney : Int -> Model -> Model
+setMoney newValue model =
+    { model | money = newValue }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -69,7 +80,20 @@ update msg model =
             ( newModel, Cmd.none )
 
         HandleAnimationFrameDelta delta ->
-            ( updateDice (Dice.handleAnimationFrameDelta delta) model, Cmd.none )
+            let
+                newMoney =
+                    if Dice.numberWasRolled delta model.dice then
+                        model.money + 1
+
+                    else
+                        model.money
+
+                newModel =
+                    model
+                        |> updateDice (Dice.handleAnimationFrameDelta delta)
+                        |> setMoney newMoney
+            in
+            ( newModel, Cmd.none )
 
 
 
@@ -99,5 +123,5 @@ view model =
             , Dice.render model.dice
             ]
         , div [ class "flex-grow h-72 flex justify-start items-center space-x-4" ]
-            [ div [ class "h-full w-24 flex justify-center items-center" ] [ span [ class "text-6xl" ] [ text "$24" ] ] ]
+            [ div [ class "h-full w-24 flex justify-center items-center" ] [ span [ class "text-6xl" ] [ text <| "$" ++ String.fromInt model.money ] ] ]
         ]
