@@ -117,6 +117,16 @@ subscriptions _ =
 -- VIEW
 
 
+renderBuildings : Model -> Html Msg
+renderBuildings model =
+    let
+        renderMeadow : Html Msg
+        renderMeadow =
+            div [ class "w-8 h-8 bg-green-300 border border-green-700" ] []
+    in
+    div [ class "h-full flex items-center space-x-1" ] (List.repeat model.buildings.meadows renderMeadow)
+
+
 view : Model -> Html Msg
 view model =
     div [ class "w-screen h-screen p-6 bg-gray-900 text-gray-100 flex space-x-4" ]
@@ -131,5 +141,7 @@ view model =
             , Dice.render model.dice
             ]
         , div [ class "flex-grow h-72 flex justify-start items-center space-x-4" ]
-            [ div [ class "h-full w-24 flex justify-center items-center" ] [ span [ class "text-6xl" ] [ text <| "$" ++ String.fromInt model.money ] ] ]
+            [ div [ class "h-full flex-grow" ] [ renderBuildings model ]
+            , div [ class "h-full w-24 flex justify-center items-center" ] [ span [ class "text-6xl" ] [ text <| "$" ++ String.fromInt model.money ] ]
+            ]
         ]
