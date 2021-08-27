@@ -18,25 +18,30 @@ main =
 -- MODEL
 
 
-type alias Buildings =
-    { meadows : Int
-    }
+type Building
+    = Meadow
+    | Smith
+
+
+type Phase
+    = RollPhase Dice
+    | BuildPhase Building Building
 
 
 type alias Model =
     { seed : Random.Seed
-    , dice : Dice
+    , phase : Phase
     , money : Int
-    , buildings : Buildings
+    , buildings : List Building
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { seed = Random.initialSeed 0
-      , dice = Dice.create
+      , phase = RollPhase Dice.create
       , money = 0
-      , buildings = { meadows = 1 }
+      , buildings = [ Meadow, Smith ]
       }
     , Cmd.none
     )
@@ -51,57 +56,49 @@ type Msg
     | Roll
 
 
-setDice : Dice -> Model -> Model
-setDice dice model =
-    { model | dice = dice }
-
-
-setSeed : Random.Seed -> Model -> Model
-setSeed seed model =
-    { model | seed = seed }
-
-
-updateDice : (Dice -> Dice) -> Model -> Model
-updateDice fn model =
-    { model | dice = fn model.dice }
-
-
-setMoney : Int -> Model -> Model
-setMoney newValue model =
-    { model | money = newValue }
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        Roll ->
+    let
+        noOp =
+            ( model, Cmd.none )
+    in
+    case ( msg, model.phase ) of
+        ( Roll, _ ) ->
             let
                 ( newDice, newSeed ) =
                     Random.step Dice.roll model.seed
 
                 newModel =
-                    model
-                        |> setDice newDice
-                        |> setSeed newSeed
+                    { model
+                        | seed = newSeed
+                        , phase = RollPhase newDice
+                    }
             in
             ( newModel, Cmd.none )
 
-        HandleAnimationFrameDelta delta ->
+        ( HandleAnimationFrameDelta delta, RollPhase dice ) ->
             let
                 newMoney =
-                    case Dice.numberWasRolled delta model.dice of
+                    case Dice.numberWasRolled delta dice of
                         Just Dice.Two ->
                             model.money + 1
 
                         _ ->
                             model.money
 
+                newDice =
+                    Dice.handleAnimationFrameDelta delta dice
+
                 newModel =
-                    model
-                        |> updateDice (Dice.handleAnimationFrameDelta delta)
-                        |> setMoney newMoney
+                    { model
+                        | phase = RollPhase newDice
+                        , money = newMoney
+                    }
             in
             ( newModel, Cmd.none )
+
+        _ ->
+            noOp
 
 
 
@@ -117,31 +114,26 @@ subscriptions _ =
 -- VIEW
 
 
-renderBuildings : Model -> Html Msg
-renderBuildings model =
-    let
-        renderMeadow : Html Msg
-        renderMeadow =
-            div [ class "w-8 h-8 bg-green-300 border border-green-700" ] []
-    in
-    div [ class "h-full flex items-center space-x-1" ] (List.repeat model.buildings.meadows renderMeadow)
-
-
 view : Model -> Html Msg
 view model =
     div [ class "w-screen h-screen p-6 bg-gray-900 text-gray-100 flex space-x-4" ]
-        [ div [ class "w-64 h-72 flex-col justify-center items-center space-y-4" ]
-            [ div [ class "flex justify-center w-full" ]
-                [ button
-                    [ class "bg-blue-800 hover:bg-blue-700 active:bg-blue-600 cursor-pointer rounded shadow py-1 px-4"
-                    , onClick Roll
+        [ case model.phase of
+            RollPhase dice ->
+                div [ class "w-64 h-72 flex-col justify-center items-center space-y-4" ]
+                    [ div [ class "flex justify-center w-full" ]
+                        [ button
+                            [ class "bg-blue-800 hover:bg-blue-700 active:bg-blue-600 cursor-pointer rounded shadow py-1 px-4"
+                            , onClick Roll
+                            ]
+                            [ text "Roll" ]
+                        ]
+                    , Dice.render dice
                     ]
-                    [ text "Roll" ]
-                ]
-            , Dice.render model.dice
-            ]
+
+            _ ->
+                div [] []
         , div [ class "flex-grow h-72 flex justify-start items-center space-x-4" ]
-            [ div [ class "h-full flex-grow" ] [ renderBuildings model ]
+            [ div [ class "h-full flex-grow" ] []
             , div [ class "h-full w-24 flex justify-center items-center" ] [ span [ class "text-6xl" ] [ text <| "$" ++ String.fromInt model.money ] ]
             ]
         ]
