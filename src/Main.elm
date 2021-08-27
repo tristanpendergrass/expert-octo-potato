@@ -18,10 +18,16 @@ main =
 -- MODEL
 
 
+type alias Buildings =
+    { meadows : Int
+    }
+
+
 type alias Model =
     { seed : Random.Seed
     , dice : Dice
     , money : Int
+    , buildings : Buildings
     }
 
 
@@ -30,6 +36,7 @@ init _ =
     ( { seed = Random.initialSeed 0
       , dice = Dice.create
       , money = 0
+      , buildings = { meadows = 1 }
       }
     , Cmd.none
     )
@@ -82,11 +89,12 @@ update msg model =
         HandleAnimationFrameDelta delta ->
             let
                 newMoney =
-                    if Dice.numberWasRolled delta model.dice then
-                        model.money + 1
+                    case Dice.numberWasRolled delta model.dice of
+                        Just Dice.Two ->
+                            model.money + 1
 
-                    else
-                        model.money
+                        _ ->
+                            model.money
 
                 newModel =
                     model
