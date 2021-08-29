@@ -114,6 +114,11 @@ subscriptions _ =
 -- VIEW
 
 
+renderBuildings : List Building -> Html Msg
+renderBuildings buildings =
+    div [] []
+
+
 view : Model -> Html Msg
 view model =
     div [ class "w-screen h-screen p-6 bg-gray-900 text-gray-100 flex space-x-4" ]
@@ -133,7 +138,7 @@ view model =
             _ ->
                 div [] []
         , div [ class "flex-grow h-72 flex justify-start items-center space-x-4" ]
-            [ div [ class "h-full flex-grow" ] []
+            [ div [ class "h-full flex-grow" ] [ renderBuildings model.buildings ]
             , div [ class "h-full w-24 flex justify-center items-center" ] [ span [ class "text-6xl" ] [ text <| "$" ++ String.fromInt model.money ] ]
             ]
         ]
