@@ -33,6 +33,7 @@ type alias Model =
     , phase : Phase
     , money : Int
     , buildings : List Building
+    , roundPanelIsOpen : Bool
     }
 
 
@@ -42,6 +43,7 @@ init _ =
       , phase = RollPhase Dice.create
       , money = 0
       , buildings = [ Meadow, Smith ]
+      , roundPanelIsOpen = False
       }
     , Cmd.none
     )
@@ -54,6 +56,7 @@ init _ =
 type Msg
     = HandleAnimationFrameDelta Float
     | Roll
+    | ToggleRoundPanel
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -97,6 +100,9 @@ update msg model =
             in
             ( newModel, Cmd.none )
 
+        ( ToggleRoundPanel, _ ) ->
+            ( { model | roundPanelIsOpen = not model.roundPanelIsOpen }, Cmd.none )
+
         _ ->
             noOp
 
@@ -124,7 +130,7 @@ view model =
     div [ class "w-screen h-screen p-6 bg-gray-900 text-gray-100 flex space-x-4" ]
         [ case model.phase of
             RollPhase dice ->
-                div [ class "w-64 h-72 flex-col justify-center items-center space-y-4" ]
+                div [ class "w-64 h-72 flex-col justify-center items-center space-y-4 relative" ]
                     [ div [ class "flex justify-center w-full" ]
                         [ button
                             [ class "bg-blue-800 hover:bg-blue-700 active:bg-blue-600 cursor-pointer rounded shadow py-1 px-4"
@@ -133,6 +139,7 @@ view model =
                             [ text "Roll" ]
                         ]
                     , Dice.render dice
+                    , div [ class "absolute bottom-0 left-0 h-20 w-full bg-gray-500" ] []
                     ]
 
             _ ->
