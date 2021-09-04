@@ -1,6 +1,11 @@
 module Game exposing (..)
 
 
+type Building
+    = Meadow
+    | Smith
+
+
 type alias Buildings =
     { meadows : Int
     , smiths : Int
@@ -19,6 +24,10 @@ type alias Game =
     }
 
 
+type alias BuyOptions =
+    ( Building, Building )
+
+
 type Phase
     = RollPhase
-    | BuyPhase
+    | BuyPhase BuyOptions
