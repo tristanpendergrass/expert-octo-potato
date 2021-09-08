@@ -120,6 +120,11 @@ subscriptions _ =
 -- VIEW
 
 
+stack : Html Msg
+stack =
+    node "stack-l" [] []
+
+
 renderBuildings : List Building -> Html Msg
 renderBuildings buildings =
     div [] []
