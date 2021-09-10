@@ -227,86 +227,84 @@ render dice =
         renderDieLarge dieFace =
             img [ class dieDimensions.large, src <| getUrl dieFace ] []
     in
-    div [ class "w-64 h-64 bg-gray-700 rounded-lg border-black overflow-hidden" ]
-        [ div [ class "w-full h-full flex flex-col justify-evenly" ]
-            (case dice of
-                WaitingOnUser ->
-                    [ div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDie One
-                        , renderDie Two
-                        , renderDie Three
-                        ]
-                    , div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDie Four
-                        , renderDie Five
-                        , renderDie Six
+    div [ class "w-64 h-64 bg-gray-700 rounded-lg border-black overflow-hidden flex flex-col justify-evenly" ]
+        (case dice of
+            WaitingOnUser ->
+                [ div [ class "flex w-full justify-evenly relative" ]
+                    [ renderDie One
+                    , renderDie Two
+                    , renderDie Three
+                    ]
+                , div [ class "flex w-full justify-evenly relative" ]
+                    [ renderDie Four
+                    , renderDie Five
+                    , renderDie Six
+                    ]
+                ]
+
+            SlideUp time _ ->
+                let
+                    renderDieContainer : DieFace -> Easing -> Float -> Html msg
+                    renderDieContainer dieFace easingFn distance =
+                        let
+                            percentDone =
+                                time / slideDuration
+
+                            visualPercentDone =
+                                easingFn percentDone
+
+                            topPx =
+                                -1 * visualPercentDone * distance
+
+                            topPxStyle =
+                                String.fromFloat topPx ++ "px"
+                        in
+                        div [ class "relative", class dieDimensions.small ] [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie dieFace ] ]
+                in
+                [ div [ class "flex w-full justify-evenly relative" ]
+                    [ renderDieContainer One bezierSlideFn 500
+                    , renderDieContainer Two bezierSlideFn2 500
+                    , renderDieContainer Three bezierSlideFn3 500
+                    ]
+                , div [ class "flex w-full justify-evenly relative" ]
+                    [ renderDieContainer Four bezierSlideFn3 400
+                    , renderDieContainer Five bezierSlideFn 400
+                    , renderDieContainer Six bezierSlideFn2 400
+                    ]
+                ]
+
+            SpinAnimation time faceSequence ->
+                let
+                    percentDone =
+                        time / spinDuration
+
+                    visualPercentDone =
+                        bezierSpinFn percentDone
+
+                    topPx =
+                        topPxAtPercentDone visualPercentDone
+
+                    topPxStyle =
+                        String.fromFloat topPx ++ "px"
+
+                    i =
+                        ithElementAtPercentDone visualPercentDone
+
+                    dieFace =
+                        List.Nonempty.get i faceSequence
+                in
+                [ div [ class "flex w-full justify-evenly relative" ]
+                    [ div [ class "relative", class dieDimensions.large ]
+                        [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDieLarge dieFace ]
                         ]
                     ]
+                ]
 
-                SlideUp time _ ->
-                    let
-                        renderDieContainer : DieFace -> Easing -> Float -> Html msg
-                        renderDieContainer dieFace easingFn distance =
-                            let
-                                percentDone =
-                                    time / slideDuration
-
-                                visualPercentDone =
-                                    easingFn percentDone
-
-                                topPx =
-                                    -1 * visualPercentDone * distance
-
-                                topPxStyle =
-                                    String.fromFloat topPx ++ "px"
-                            in
-                            div [ class "relative", class dieDimensions.small ] [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDie dieFace ] ]
-                    in
-                    [ div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDieContainer One bezierSlideFn 500
-                        , renderDieContainer Two bezierSlideFn2 500
-                        , renderDieContainer Three bezierSlideFn3 500
-                        ]
-                    , div [ class "flex w-full justify-evenly relative" ]
-                        [ renderDieContainer Four bezierSlideFn3 400
-                        , renderDieContainer Five bezierSlideFn 400
-                        , renderDieContainer Six bezierSlideFn2 400
+            Finished result ->
+                [ div [ class "flex w-full justify-evenly relative" ]
+                    [ div [ class "relative", class dieDimensions.large ]
+                        [ renderDieLarge result
                         ]
                     ]
-
-                SpinAnimation time faceSequence ->
-                    let
-                        percentDone =
-                            time / spinDuration
-
-                        visualPercentDone =
-                            bezierSpinFn percentDone
-
-                        topPx =
-                            topPxAtPercentDone visualPercentDone
-
-                        topPxStyle =
-                            String.fromFloat topPx ++ "px"
-
-                        i =
-                            ithElementAtPercentDone visualPercentDone
-
-                        dieFace =
-                            List.Nonempty.get i faceSequence
-                    in
-                    [ div [ class "flex w-full justify-evenly relative" ]
-                        [ div [ class "relative", class dieDimensions.large ]
-                            [ div [ class "absolute left-0 right-0", style "top" topPxStyle ] [ renderDieLarge dieFace ]
-                            ]
-                        ]
-                    ]
-
-                Finished result ->
-                    [ div [ class "flex w-full justify-evenly relative" ]
-                        [ div [ class "relative", class dieDimensions.large ]
-                            [ renderDieLarge result
-                            ]
-                        ]
-                    ]
-            )
-        ]
+                ]
+        )
