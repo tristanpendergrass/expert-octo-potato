@@ -144,6 +144,11 @@ box =
     node "box-l"
 
 
+cover : EveryLayoutEl
+cover =
+    node "cover-l"
+
+
 renderBuildings : List Building -> Html Msg
 renderBuildings buildings =
     div [] []
@@ -151,11 +156,11 @@ renderBuildings buildings =
 
 view : Model -> Html Msg
 view model =
-    sidebar [ class "h-screen bg-gray-900" ]
-        [ box []
-            [ case model.phase of
-                RollPhase dice ->
-                    stack []
+    sidebar [ class "h-full bg-gray-900" ]
+        [ cover [ attribute "centered" ".roll-container" ]
+            [ stack [ class "roll-container" ]
+                (case model.phase of
+                    RollPhase dice ->
                         [ center []
                             [ button
                                 [ class "bg-blue-800 hover:bg-blue-700 active:bg-blue-600 cursor-pointer rounded shadow py-1 px-4"
@@ -166,8 +171,9 @@ view model =
                         , Dice.render dice
                         ]
 
-                _ ->
-                    div [] []
+                    _ ->
+                        []
+                )
             ]
         , div [ class "flex-grow h-72 flex justify-start items-center space-x-4" ]
             [ div [ class "h-full flex-grow" ] [ renderBuildings model.buildings ]
