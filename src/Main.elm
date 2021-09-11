@@ -156,8 +156,8 @@ renderBuildings buildings =
 
 view : Model -> Html Msg
 view model =
-    sidebar [ class "h-full bg-gray-900" ]
-        [ cover [ attribute "centered" ".roll-container" ]
+    sidebar [ class "h-full bg-gray-900", attribute "sideWidth" "35%" ]
+        [ cover [ attribute "centered" ".roll-container", class "border-r-4 border-gray-100 border-dotted" ]
             [ stack [ class "roll-container" ]
                 (case model.phase of
                     RollPhase dice ->
@@ -168,15 +168,16 @@ view model =
                                 ]
                                 [ text "Roll" ]
                             ]
-                        , Dice.render dice
+                        , center [] [ Dice.render dice ]
                         ]
 
                     _ ->
                         []
                 )
             ]
-        , div [ class "flex-grow h-72 flex justify-start items-center space-x-4" ]
-            [ div [ class "h-full flex-grow" ] [ renderBuildings model.buildings ]
-            , div [ class "h-full w-24 flex justify-center items-center" ] [ span [ class "text-6xl" ] [ text <| "$" ++ String.fromInt model.money ] ]
+        , cover [ attribute "centered" ".buildings-container" ]
+            [ center []
+                [ h2 [ class "text-6xl" ] [ text "$0" ]
+                ]
             ]
         ]
