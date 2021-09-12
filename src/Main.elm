@@ -149,9 +149,26 @@ cover =
     node "cover-l"
 
 
+switcher : EveryLayoutEl
+switcher =
+    node "switcher-l"
+
+
 renderBuildings : List Building -> Html Msg
 renderBuildings buildings =
     div [] []
+
+
+renderBuilding : Html Msg
+renderBuilding =
+    box [ class "border border-gray-100" ]
+        [ stack []
+            [ switcher []
+                [ box [ class "w-8 h-8 bg-green-500" ] []
+                , h4 [ class "text-xl" ] [ text "Meadow" ]
+                ]
+            ]
+        ]
 
 
 view : Model -> Html Msg
@@ -178,6 +195,11 @@ view model =
         , cover [ attribute "centered" ".buildings-container" ]
             [ center []
                 [ h2 [ class "text-6xl" ] [ text "$0" ]
+                ]
+            , center []
+                [ box [ class "buildings-container" ]
+                    [ renderBuilding
+                    ]
                 ]
             ]
         ]
