@@ -163,8 +163,8 @@ renderBuilding : Html Msg
 renderBuilding =
     box [ class "border border-gray-100" ]
         [ stack []
-            [ switcher []
-                [ box [ class "w-8 h-8 bg-green-500" ] []
+            [ switcher [ attribute "threshold" "1rem" ]
+                [ cover [ attribute "centered" ".picture", attribute "minHeight" "100%" ] [ box [ class "picture", class "w-4 h-4 bg-green-500", attribute "padding" "0" ] [] ]
                 , h4 [ class "text-xl" ] [ text "Meadow" ]
                 ]
             ]
