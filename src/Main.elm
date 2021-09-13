@@ -161,11 +161,11 @@ renderBuildings buildings =
 
 renderBuilding : Html Msg
 renderBuilding =
-    box [ class "border border-gray-100" ]
+    div [ class "border border-gray-100" ]
         [ stack []
-            [ switcher [ attribute "threshold" "1rem" ]
-                [ cover [ attribute "centered" ".picture", attribute "minHeight" "100%" ] [ box [ class "picture", class "w-4 h-4 bg-green-500", attribute "padding" "0" ] [] ]
-                , h4 [ class "text-xl" ] [ text "Meadow" ]
+            [ div [ class "flex items-center p-4" ]
+                [ div [ class "rounded-border border-4 border-gray-100 w-12 h-12 bg-green-500" ] []
+                , h4 [ class "inline-block text-xl" ] [ text "Meadow" ]
                 ]
             ]
         ]
@@ -197,9 +197,7 @@ view model =
                 [ h2 [ class "text-6xl" ] [ text "$0" ]
                 ]
             , center []
-                [ box [ class "buildings-container" ]
-                    [ renderBuilding
-                    ]
+                [ renderBuilding
                 ]
             ]
         ]
