@@ -161,7 +161,7 @@ renderBuildings buildings =
 
 renderBuilding : Html Msg
 renderBuilding =
-    div [ class "border border-gray-100" ]
+    div [ class "rounded-border-2 border-4 border-gray-100" ]
         [ stack []
             [ div [ class "flex items-center p-4" ]
                 [ div [ class "rounded-border border-4 border-gray-100 w-12 h-12 bg-green-500" ] []

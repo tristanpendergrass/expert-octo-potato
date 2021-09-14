@@ -31617,6 +31617,10 @@ video {
   border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
 }
 
+.rounded-border-2 {
+  border-radius: 15px 225px 15px 255px/255px 15px 225px 15px;
+}
+
 :root {
   --ratio: 1.4;
   --s-5: calc(var(--s-4) / var(--ratio));
