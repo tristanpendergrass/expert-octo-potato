@@ -154,9 +154,14 @@ switcher =
     node "switcher-l"
 
 
-renderBuildings : List Building -> Html Msg
-renderBuildings buildings =
-    div [] []
+renderBuildings : Html Msg
+renderBuildings =
+    div [ class "w-100 flex space-x-32" ]
+        [ div [ class "flex-col" ]
+            [ renderBuilding ]
+        , div [ class "flex-col" ]
+            [ renderBuilding ]
+        ]
 
 
 renderBuilding : Html Msg
@@ -177,7 +182,7 @@ renderBuilding =
 
 view : Model -> Html Msg
 view model =
-    sidebar [ class "h-full bg-gray-900", attribute "sideWidth" "35%" ]
+    sidebar [ class "h-full ", attribute "sideWidth" "35%" ]
         [ cover [ attribute "centered" ".roll-container", class "border-r-4 border-gray-100 border-dotted" ]
             [ stack [ class "roll-container" ]
                 (case model.phase of
@@ -201,7 +206,7 @@ view model =
                 [ h2 [ class "text-6xl" ] [ text "$0" ]
                 ]
             , center []
-                [ renderBuilding
+                [ renderBuildings
                 ]
             ]
         ]
