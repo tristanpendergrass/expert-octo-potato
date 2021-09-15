@@ -1,4 +1,4 @@
-module Dice exposing (Dice(..), DieFace(..), create, handleAnimationFrameDelta, numberWasRolled, render, roll)
+module Dice exposing (Dice(..), DieFace(..), create, getUrl, handleAnimationFrameDelta, numberWasRolled, render, renderDie, roll)
 
 import Basics.Extra
 import Ease exposing (Easing)
@@ -216,29 +216,36 @@ getUrl face =
             "Dice-6a-b.svg"
 
 
+renderDie : DieFace -> Html msg
+renderDie dieFace =
+    img [ class "w-100 h-100", src <| getUrl dieFace ] []
+
+
 render : Dice -> Html msg
 render dice =
     let
-        renderDie : DieFace -> Html msg
-        renderDie dieFace =
-            img [ class dieDimensions.small, src <| getUrl dieFace ] []
+        renderDieSmall : DieFace -> Html msg
+        renderDieSmall dieFace =
+            div [ class "w-8 h-8" ]
+                [ renderDie dieFace ]
 
         renderDieLarge : DieFace -> Html msg
         renderDieLarge dieFace =
-            img [ class dieDimensions.large, src <| getUrl dieFace ] []
+            div [ class "w-12 h-12" ]
+                [ renderDie dieFace ]
     in
     div [ class "w-64 h-64 bg-gray-700 rounded-lg border-black overflow-hidden flex flex-col justify-evenly" ]
         (case dice of
             WaitingOnUser ->
                 [ div [ class "flex w-full justify-evenly relative" ]
-                    [ renderDie One
-                    , renderDie Two
-                    , renderDie Three
+                    [ renderDieSmall One
+                    , renderDieSmall Two
+                    , renderDieSmall Three
                     ]
                 , div [ class "flex w-full justify-evenly relative" ]
-                    [ renderDie Four
-                    , renderDie Five
-                    , renderDie Six
+                    [ renderDieSmall Four
+                    , renderDieSmall Five
+                    , renderDieSmall Six
                     ]
                 ]
 

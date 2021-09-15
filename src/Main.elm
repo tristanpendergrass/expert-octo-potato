@@ -161,11 +161,15 @@ renderBuildings buildings =
 
 renderBuilding : Html Msg
 renderBuilding =
-    div [ class "rounded-border-2 border-4 border-gray-100" ]
+    div [ class "rounded-border-2 border-2 border-gray-100 w-64 h-40 bg-blue-500" ]
         [ stack []
-            [ div [ class "flex items-center p-4" ]
-                [ div [ class "rounded-border border-4 border-gray-100 w-12 h-12 bg-green-500" ] []
+            [ div [ class "flex justify-center items-center p-4 space-x-4" ]
+                [ div [ class "rounded-border border-2 border-gray-100 w-12 h-12 bg-green-500" ] []
                 , h4 [ class "inline-block text-xl" ] [ text "Meadow" ]
+                ]
+            , div [ class "flex justify-center items-center p-4 space-x-2" ]
+                [ div [ class "w-6 h-6" ] [ Dice.renderDie Dice.Two ]
+                , h4 [ class "inline-block text-xl" ] [ text "$4" ]
                 ]
             ]
         ]
