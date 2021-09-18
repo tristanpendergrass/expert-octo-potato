@@ -158,7 +158,7 @@ renderBuildings : Html Msg
 renderBuildings =
     div [ class "w-100 flex space-x-32" ]
         [ div [ class "flex-col" ]
-            [ renderMeadow ]
+            [ renderMeadow, renderMeadow ]
         , div [ class "flex-col" ]
             [ renderSmith ]
         ]
