@@ -23,6 +23,12 @@ type Building
     | Smith
 
 
+type alias Buildings =
+    { meadows : Int
+    , smiths : Int
+    }
+
+
 type Phase
     = RollPhase Dice
     | BuildPhase Building Building
@@ -32,7 +38,7 @@ type alias Model =
     { seed : Random.Seed
     , phase : Phase
     , money : Int
-    , buildings : List Building
+    , buildings : Buildings
     , roundPanelIsOpen : Bool
     }
 
@@ -42,7 +48,7 @@ init _ =
     ( { seed = Random.initialSeed 0
       , phase = RollPhase Dice.create
       , money = 0
-      , buildings = [ Meadow, Smith ]
+      , buildings = { meadows = 1, smiths = 2 }
       , roundPanelIsOpen = False
       }
     , Cmd.none
@@ -154,13 +160,19 @@ switcher =
     node "switcher-l"
 
 
-renderBuildings : Html Msg
-renderBuildings =
-    div [ class "w-100 flex space-x-32" ]
-        [ div [ class "flex-col" ]
-            [ renderMeadow ]
-        , div [ class "flex-col" ]
-            [ renderSmith ]
+renderBuildings : Model -> Html Msg
+renderBuildings model =
+    div [ class "w-100 h-100 flex space-x-32" ]
+        [ div [ class "flex-col items-center justify-center space-y-8" ]
+            [ div [ class "flex items-center space-x-4" ]
+                [ renderMeadow
+                , div [] [ text <| "x " ++ String.fromInt model.buildings.meadows ]
+                ]
+            , div [ class "flex items-center space-x-4" ]
+                [ renderSmith
+                , div [] [ text <| "x " ++ String.fromInt model.buildings.smiths ]
+                ]
+            ]
         ]
 
 
@@ -221,8 +233,8 @@ view model =
             [ center []
                 [ h2 [ class "text-6xl" ] [ text "$0" ]
                 ]
-            , center []
-                [ renderBuildings
+            , center [ class "buildings-container" ]
+                [ renderBuildings model
                 ]
             ]
         ]
