@@ -88,9 +88,12 @@ update msg model =
         ( HandleAnimationFrameDelta delta, RollPhase dice ) ->
             let
                 newMoney =
-                    case Dice.numberWasRolled delta dice of
+                    case Dice.numberWasRolled dice of
                         Just Dice.Two ->
-                            model.money + 1
+                            model.money + (4 * model.buildings.meadows)
+
+                        Just _ ->
+                            model.money + (1 * model.buildings.smiths)
 
                         _ ->
                             model.money
@@ -231,7 +234,7 @@ view model =
             ]
         , cover [ attribute "centered" ".buildings-container" ]
             [ center []
-                [ h2 [ class "text-6xl" ] [ text "$0" ]
+                [ h2 [ class "text-6xl" ] [ text <| "$" ++ String.fromInt model.money ]
                 ]
             , center [ class "buildings-container" ]
                 [ renderBuildings model

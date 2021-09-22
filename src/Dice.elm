@@ -117,8 +117,8 @@ handleAnimationFrameDelta delta dice =
             dice
 
 
-numberWasRolled : Float -> Dice -> Maybe DieFace
-numberWasRolled delta dice =
+numberWasRolled : Dice -> Maybe DieFace
+numberWasRolled dice =
     case dice of
         SpinAnimation time sequence ->
             if time >= spinDuration then
