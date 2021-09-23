@@ -214,7 +214,7 @@ renderSmith =
 view : Model -> Html Msg
 view model =
     sidebar [ class "h-full ", attribute "sideWidth" "35%" ]
-        [ cover [ attribute "centered" ".roll-container", class "border-r-4 border-gray-100 border-dotted" ]
+        [ cover [ attribute "centered" ".roll-container", class "border-r-4 border-gray-100 border-dotted relative" ]
             [ stack [ class "roll-container" ]
                 (case model.phase of
                     RollPhase dice ->
@@ -231,6 +231,7 @@ view model =
                     _ ->
                         []
                 )
+            , div [ class "absolute w-full h-16 bg-gray-500 bottom-0 left-0 " ] []
             ]
         , cover [ attribute "centered" ".buildings-container" ]
             [ center []
