@@ -129,6 +129,15 @@ subscriptions _ =
 -- VIEW
 
 
+primaryButton : List (Attribute msg) -> List (Html msg) -> Html msg
+primaryButton attrs =
+    button <|
+        List.concat
+            [ [ class "border-2 rounded-border border-gray-100 px-4 py-1 bg-blue-700 hover:bg-blue-600 active:bg-blue-500 focus:outline-none" ]
+            , attrs
+            ]
+
+
 type alias EveryLayoutEl =
     List (Html.Attribute Msg) -> List (Html Msg) -> Html Msg
 
@@ -211,6 +220,15 @@ renderSmith =
         ]
 
 
+renderRoundPanel : Model -> Html Msg
+renderRoundPanel model =
+    div [ class "absolute w-full h-16 bg-blue-300 bottom-0 left-0 border-t-2 border-blue-500" ]
+        [ div [ class "flex items-center w-full h-full px-4" ]
+            [ primaryButton [] [ text "Expand" ]
+            ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     sidebar [ class "h-full ", attribute "sideWidth" "35%" ]
@@ -219,9 +237,9 @@ view model =
                 (case model.phase of
                     RollPhase dice ->
                         [ center []
-                            [ button
-                                [ class "bg-blue-800 hover:bg-blue-700 active:bg-blue-600 cursor-pointer rounded shadow py-1 px-4"
-                                , onClick Roll
+                            [ primaryButton
+                                [ onClick Roll
+                                , class "w-20"
                                 ]
                                 [ text "Roll" ]
                             ]
@@ -231,7 +249,7 @@ view model =
                     _ ->
                         []
                 )
-            , div [ class "absolute w-full h-16 bg-gray-500 bottom-0 left-0 " ] []
+            , renderRoundPanel model
             ]
         , cover [ attribute "centered" ".buildings-container" ]
             [ center []
