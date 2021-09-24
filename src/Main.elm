@@ -224,7 +224,14 @@ renderRoundPanel : Model -> Html Msg
 renderRoundPanel model =
     div [ class "absolute w-full h-16 bg-blue-300 bottom-0 left-0 border-t-2 border-blue-500" ]
         [ div [ class "flex items-center w-full h-full px-4" ]
-            [ primaryButton [] [ text "Expand" ]
+            [ primaryButton [ onClick ToggleRoundPanel ]
+                [ text <|
+                    if model.roundPanelIsOpen then
+                        "Less"
+
+                    else
+                        "More"
+                ]
             ]
         ]
 
