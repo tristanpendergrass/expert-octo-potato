@@ -222,9 +222,17 @@ renderSmith =
 
 renderRoundPanel : Model -> Html Msg
 renderRoundPanel model =
-    div [ class "absolute w-full h-16 bg-blue-300 bottom-0 left-0 border-t-2 border-blue-500" ]
-        [ div [ class "flex items-center w-full h-full px-4" ]
-            [ primaryButton [ onClick ToggleRoundPanel ]
+    div
+        [ class "absolute w-full bg-blue-300 bottom-0 left-0 border-t-2 border-blue-500 transition-all"
+        , class <|
+            if model.roundPanelIsOpen then
+                "h-64"
+
+            else
+                "h-16"
+        ]
+        [ div [ class "flex items-center w-full h-16 px-2" ]
+            [ primaryButton [ onClick ToggleRoundPanel, class "w-24" ]
                 [ text <|
                     if model.roundPanelIsOpen then
                         "Less"
@@ -239,7 +247,7 @@ renderRoundPanel model =
 view : Model -> Html Msg
 view model =
     sidebar [ class "h-full ", attribute "sideWidth" "35%" ]
-        [ cover [ attribute "centered" ".roll-container", class "border-r-4 border-gray-100 border-dotted relative" ]
+        [ cover [ attribute "centered" ".roll-container", class "border-r-4 border-gray-100 border-dotted relative overflow-hidden" ]
             [ stack [ class "roll-container" ]
                 (case model.phase of
                     RollPhase dice ->
