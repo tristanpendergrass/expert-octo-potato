@@ -231,14 +231,14 @@ renderRoundPanel model =
             else
                 "h-16"
         ]
-        [ div [ class "flex items-center w-full h-16 px-2" ]
-            [ primaryButton [ onClick ToggleRoundPanel, class "w-24" ]
+        [ div [ class "flex items-center w-full h-16 px-4" ]
+            [ primaryButton [ onClick ToggleRoundPanel, class "w-10 font-bold flex justify-center" ]
                 [ text <|
                     if model.roundPanelIsOpen then
-                        "Less"
+                        "-"
 
                     else
-                        "More"
+                        "^"
                 ]
             ]
         ]
