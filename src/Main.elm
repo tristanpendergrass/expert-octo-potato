@@ -231,8 +231,8 @@ renderRoundPanel model =
             else
                 "h-16"
         ]
-        [ div [ class "flex items-center w-full h-16 px-4" ]
-            [ primaryButton [ onClick ToggleRoundPanel, class "w-10 font-bold flex justify-center" ]
+        [ div [ class "flex items-center w-full h-16 px-4 text-gray-900 space-x-4" ]
+            [ primaryButton [ onClick ToggleRoundPanel, class "w-10 font-bold flex justify-center text-gray-100" ]
                 [ text <|
                     if model.roundPanelIsOpen then
                         "-"
@@ -240,6 +240,15 @@ renderRoundPanel model =
                     else
                         "^"
                 ]
+            , div [] [ text "Round 1 / 4" ]
+            , div [ class "border-l border-dashed border-gray-900 h-3/4" ] []
+            , div [ class "font-bold" ] [ text "Roll" ]
+            , div [] [ text ">" ]
+            , div [] [ text "Roll" ]
+            , div [] [ text ">" ]
+            , div [] [ text "Roll" ]
+            , div [] [ text ">" ]
+            , div [] [ text "Buy" ]
             ]
         ]
 
