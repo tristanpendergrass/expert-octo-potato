@@ -13,6 +13,7 @@
             "elm-community/basics-extra": "4.1.0",
             "elm-community/easing-functions": "2.0.0",
             "elm-community/list-extra": "8.4.0",
+            "elm-community/maybe-extra": "5.2.0",
             "mgold/elm-nonempty-list": "4.2.0"
         },
         "indirect": {

@@ -6,6 +6,7 @@ import Dice exposing (Dice(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Maybe.Extra
 import Random
 
 
@@ -29,27 +30,40 @@ type alias Buildings =
     }
 
 
+type Round
+    = RoundOne
+    | RoundTwo
+    | RoundThree
+    | RoundFour
+
+
 type Phase
-    = RollPhase Dice
-    | BuildPhase Building Building
+    = RollOne
+    | RollTwo
+    | RollThree
+    | Buy
 
 
 type alias Model =
     { seed : Random.Seed
-    , phase : Phase
+    , dice : Dice
     , money : Int
     , buildings : Buildings
     , roundPanelIsOpen : Bool
+    , round : Round
+    , phase : Phase
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { seed = Random.initialSeed 0
-      , phase = RollPhase Dice.create
+      , dice = Dice.create
       , money = 0
       , buildings = { meadows = 1, smiths = 2 }
       , roundPanelIsOpen = False
+      , round = RoundOne
+      , phase = RollOne
       }
     , Cmd.none
     )
@@ -71,8 +85,8 @@ update msg model =
         noOp =
             ( model, Cmd.none )
     in
-    case ( msg, model.phase ) of
-        ( Roll, _ ) ->
+    case msg of
+        Roll ->
             let
                 ( newDice, newSeed ) =
                     Random.step Dice.roll model.seed
@@ -80,15 +94,15 @@ update msg model =
                 newModel =
                     { model
                         | seed = newSeed
-                        , phase = RollPhase newDice
+                        , dice = newDice
                     }
             in
             ( newModel, Cmd.none )
 
-        ( HandleAnimationFrameDelta delta, RollPhase dice ) ->
+        HandleAnimationFrameDelta delta ->
             let
                 newMoney =
-                    case Dice.numberWasRolled dice of
+                    case Dice.numberWasRolled model.dice of
                         Just Dice.Two ->
                             model.money + (4 * model.buildings.meadows)
 
@@ -98,22 +112,38 @@ update msg model =
                         _ ->
                             model.money
 
+                newPhase =
+                    if Maybe.Extra.isJust (Dice.numberWasRolled model.dice) then
+                        case model.phase of
+                            RollOne ->
+                                RollTwo
+
+                            RollTwo ->
+                                RollThree
+
+                            RollThree ->
+                                Buy
+
+                            Buy ->
+                                model.phase
+
+                    else
+                        model.phase
+
                 newDice =
-                    Dice.handleAnimationFrameDelta delta dice
+                    Dice.handleAnimationFrameDelta delta model.dice
 
                 newModel =
                     { model
-                        | phase = RollPhase newDice
+                        | dice = newDice
                         , money = newMoney
+                        , phase = newPhase
                     }
             in
             ( newModel, Cmd.none )
 
-        ( ToggleRoundPanel, _ ) ->
+        ToggleRoundPanel ->
             ( { model | roundPanelIsOpen = not model.roundPanelIsOpen }, Cmd.none )
-
-        _ ->
-            noOp
 
 
 
@@ -222,6 +252,29 @@ renderSmith =
 
 renderRoundPanel : Model -> Html Msg
 renderRoundPanel model =
+    let
+        roundText =
+            case model.round of
+                RoundOne ->
+                    "Round 1 / 4"
+
+                RoundTwo ->
+                    "Round 2 / 4"
+
+                RoundThree ->
+                    "Round 3 / 4"
+
+                RoundFour ->
+                    "Round 4 / 4"
+
+        boldIfPhaseIs : Phase -> String
+        boldIfPhaseIs phase =
+            if model.phase == phase then
+                "font-bold"
+
+            else
+                ""
+    in
     div
         [ class "absolute w-full bg-blue-300 bottom-0 left-0 border-t-2 border-blue-500 transition-all"
         , class <|
@@ -240,15 +293,15 @@ renderRoundPanel model =
                     else
                         "^"
                 ]
-            , div [] [ text "Round 1 / 4" ]
+            , div [] [ text roundText ]
             , div [ class "border-l border-dashed border-gray-900 h-3/4" ] []
-            , div [ class "font-bold" ] [ text "Roll" ]
+            , div [ class <| boldIfPhaseIs RollOne ] [ text "Roll" ]
             , div [] [ text ">" ]
-            , div [] [ text "Roll" ]
+            , div [ class <| boldIfPhaseIs RollTwo ] [ text "Roll" ]
             , div [] [ text ">" ]
-            , div [] [ text "Roll" ]
+            , div [ class <| boldIfPhaseIs RollThree ] [ text "Roll" ]
             , div [] [ text ">" ]
-            , div [] [ text "Buy" ]
+            , div [ class <| boldIfPhaseIs Buy ] [ text "Buy" ]
             ]
         ]
 
@@ -258,21 +311,15 @@ view model =
     sidebar [ class "h-full ", attribute "sideWidth" "35%" ]
         [ cover [ attribute "centered" ".roll-container", class "border-r-4 border-gray-100 border-dotted relative overflow-hidden" ]
             [ stack [ class "roll-container" ]
-                (case model.phase of
-                    RollPhase dice ->
-                        [ center []
-                            [ primaryButton
-                                [ onClick Roll
-                                , class "w-20"
-                                ]
-                                [ text "Roll" ]
-                            ]
-                        , center [] [ Dice.render dice ]
+                [ center []
+                    [ primaryButton
+                        [ onClick Roll
+                        , class "w-20"
                         ]
-
-                    _ ->
-                        []
-                )
+                        [ text "Roll" ]
+                    ]
+                , center [] [ Dice.render model.dice ]
+                ]
             , renderRoundPanel model
             ]
         , cover [ attribute "centered" ".buildings-container" ]
