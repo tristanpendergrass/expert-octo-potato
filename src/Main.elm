@@ -42,6 +42,7 @@ type Phase
     | RollTwo
     | RollThree
     | Buy
+    | PayRent
 
 
 type alias Model =
@@ -49,7 +50,6 @@ type alias Model =
     , dice : Dice
     , money : Int
     , buildings : Buildings
-    , roundPanelIsOpen : Bool
     , round : Round
     , phase : Phase
     }
@@ -61,7 +61,6 @@ init _ =
       , dice = Dice.create
       , money = 0
       , buildings = { meadows = 1, smiths = 2 }
-      , roundPanelIsOpen = False
       , round = RoundOne
       , phase = RollOne
       }
@@ -76,7 +75,6 @@ init _ =
 type Msg
     = HandleAnimationFrameDelta Float
     | Roll
-    | ToggleRoundPanel
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -127,6 +125,9 @@ update msg model =
                             Buy ->
                                 model.phase
 
+                            PayRent ->
+                                model.phase
+
                     else
                         model.phase
 
@@ -141,9 +142,6 @@ update msg model =
                     }
             in
             ( newModel, Cmd.none )
-
-        ToggleRoundPanel ->
-            ( { model | roundPanelIsOpen = not model.roundPanelIsOpen }, Cmd.none )
 
 
 
@@ -275,25 +273,9 @@ renderRoundPanel model =
             else
                 ""
     in
-    div
-        [ class "absolute w-full bg-blue-300 bottom-0 left-0 border-t-2 border-blue-500 transition-all"
-        , class <|
-            if model.roundPanelIsOpen then
-                "h-64"
-
-            else
-                "h-16"
-        ]
+    div [ class "absolute w-full bg-blue-300 top-0 left-0 border-t-2 border-blue-500 transition-all h-16" ]
         [ div [ class "flex items-center w-full h-16 px-4 text-gray-900 space-x-4" ]
-            [ primaryButton [ onClick ToggleRoundPanel, class "w-10 font-bold flex justify-center text-gray-100" ]
-                [ text <|
-                    if model.roundPanelIsOpen then
-                        "-"
-
-                    else
-                        "^"
-                ]
-            , div [] [ text roundText ]
+            [ div [] [ text roundText ]
             , div [ class "border-l border-dashed border-gray-900 h-3/4" ] []
             , div [ class <| boldIfPhaseIs RollOne ] [ text "Roll" ]
             , div [] [ text ">" ]
@@ -310,7 +292,8 @@ view : Model -> Html Msg
 view model =
     sidebar [ class "h-full ", attribute "sideWidth" "35%" ]
         [ cover [ attribute "centered" ".roll-container", class "border-r-4 border-gray-100 border-dotted relative overflow-hidden" ]
-            [ stack [ class "roll-container" ]
+            [ renderRoundPanel model
+            , stack [ class "roll-container" ]
                 [ center []
                     [ primaryButton
                         [ onClick Roll
@@ -320,7 +303,6 @@ view model =
                     ]
                 , center [] [ Dice.render model.dice ]
                 ]
-            , renderRoundPanel model
             ]
         , cover [ attribute "centered" ".buildings-container" ]
             [ center []
