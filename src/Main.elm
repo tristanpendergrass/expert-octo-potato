@@ -19,6 +19,10 @@ main =
 -- MODEL
 
 
+type Shop
+    = Shop Building Building
+
+
 type Building
     = Meadow
     | Smith
@@ -52,6 +56,7 @@ type alias Model =
     , buildings : Buildings
     , round : Round
     , phase : Phase
+    , shop : Maybe Shop
     }
 
 
@@ -63,6 +68,7 @@ init _ =
       , buildings = { meadows = 1, smiths = 2 }
       , round = RoundOne
       , phase = RollOne
+      , shop = Nothing
       }
     , Cmd.none
     )
@@ -134,11 +140,19 @@ update msg model =
                 newDice =
                     Dice.handleAnimationFrameDelta delta model.dice
 
+                newShop =
+                    if Maybe.Extra.isJust (Dice.numberWasRolled model.dice) then
+                        Just (Shop Meadow Smith)
+
+                    else
+                        Nothing
+
                 newModel =
                     { model
                         | dice = newDice
                         , money = newMoney
                         , phase = newPhase
+                        , shop = newShop
                     }
             in
             ( newModel, Cmd.none )
