@@ -83,6 +83,11 @@ type Msg
     | Roll
 
 
+isRollPhase : Model -> Bool
+isRollPhase model =
+    model.phase == RollOne || model.phase == RollTwo || model.phase == RollThree
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
@@ -91,17 +96,21 @@ update msg model =
     in
     case msg of
         Roll ->
-            let
-                ( newDice, newSeed ) =
-                    Random.step Dice.roll model.seed
+            if isRollPhase model then
+                let
+                    ( newDice, newSeed ) =
+                        Random.step Dice.roll model.seed
 
-                newModel =
-                    { model
-                        | seed = newSeed
-                        , dice = newDice
-                    }
-            in
-            ( newModel, Cmd.none )
+                    newModel =
+                        { model
+                            | seed = newSeed
+                            , dice = newDice
+                        }
+                in
+                ( newModel, Cmd.none )
+
+            else
+                noOp
 
         HandleAnimationFrameDelta delta ->
             let
@@ -178,6 +187,11 @@ primaryButton attrs =
             [ [ class "border-2 rounded-border border-gray-100 px-4 py-1 bg-blue-700 hover:bg-blue-600 active:bg-blue-500 focus:outline-none" ]
             , attrs
             ]
+
+
+disabledPrimaryButtonClass : String
+disabledPrimaryButtonClass =
+    "opacity-50 hover:bg-blue-700 active:bg-blue-700"
 
 
 type alias EveryLayoutEl =
@@ -302,21 +316,33 @@ renderRoundPanel model =
         ]
 
 
+renderRollArea : Model -> Html Msg
+renderRollArea model =
+    stack [ class "roll-container" ]
+        [ center []
+            [ primaryButton
+                [ onClick Roll
+                , class "w-20"
+                , class <|
+                    if isRollPhase model then
+                        ""
+
+                    else
+                        disabledPrimaryButtonClass
+                , disabled <| not (isRollPhase model)
+                ]
+                [ text "Roll" ]
+            ]
+        , center [] [ Dice.render model.dice ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     sidebar [ class "h-full ", attribute "sideWidth" "35%" ]
         [ cover [ attribute "centered" ".roll-container", class "border-r-4 border-gray-100 border-dotted relative overflow-hidden" ]
             [ renderRoundPanel model
-            , stack [ class "roll-container" ]
-                [ center []
-                    [ primaryButton
-                        [ onClick Roll
-                        , class "w-20"
-                        ]
-                        [ text "Roll" ]
-                    ]
-                , center [] [ Dice.render model.dice ]
-                ]
+            , renderRollArea model
             ]
         , cover [ attribute "centered" ".buildings-container" ]
             [ center []
