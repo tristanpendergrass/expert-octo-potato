@@ -191,7 +191,7 @@ primaryButton attrs =
 
 disabledPrimaryButtonClass : String
 disabledPrimaryButtonClass =
-    "opacity-50 hover:bg-blue-700 active:bg-blue-700"
+    "hover:bg-blue-700 active:bg-blue-700"
 
 
 type alias EveryLayoutEl =
@@ -318,7 +318,15 @@ renderRoundPanel model =
 
 renderRollArea : Model -> Html Msg
 renderRollArea model =
-    stack [ class "roll-container" ]
+    stack
+        [ class "roll-container"
+        , class <|
+            if isRollPhase model then
+                ""
+
+            else
+                "opacity-50"
+        ]
         [ center []
             [ primaryButton
                 [ onClick Roll
