@@ -81,6 +81,7 @@ init _ =
 type Msg
     = HandleAnimationFrameDelta Float
     | Roll
+    | SkipToBuy
 
 
 isRollPhase : Model -> Bool
@@ -111,6 +112,13 @@ update msg model =
 
             else
                 noOp
+
+        SkipToBuy ->
+            let
+                newModel =
+                    { model | phase = Buy }
+            in
+            ( newModel, Cmd.none )
 
         HandleAnimationFrameDelta delta ->
             let
@@ -185,6 +193,15 @@ primaryButton attrs =
     button <|
         List.concat
             [ [ class "border-2 rounded-border border-gray-100 px-4 py-1 bg-blue-700 hover:bg-blue-600 active:bg-blue-500 focus:outline-none" ]
+            , attrs
+            ]
+
+
+secondaryButton : List (Attribute msg) -> List (Html msg) -> Html msg
+secondaryButton attrs =
+    button <|
+        List.concat
+            [ [ class "border-b border-dashed border-gray-100 focus:outline-none active:text-gray-400 hover:text-gray-300" ]
             , attrs
             ]
 
@@ -324,7 +341,7 @@ renderRollArea model =
     in
     stack
         []
-        [ center []
+        [ center [ class "flex items-center space-x-4" ]
             [ primaryButton
                 [ onClick Roll
                 , class "w-20"
@@ -337,6 +354,10 @@ renderRollArea model =
                 , disabled disableRollButton
                 ]
                 [ text "Roll" ]
+            , secondaryButton
+                [ onClick SkipToBuy
+                ]
+                [ text "Skip to Buy" ]
             ]
         , center
             [ class <|
