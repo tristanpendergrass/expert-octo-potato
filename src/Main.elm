@@ -323,8 +323,7 @@ renderRollArea model =
             not (isRollPhase model) || Dice.isRolling model.dice
     in
     stack
-        [ class "roll-container"
-        ]
+        []
         [ center []
             [ primaryButton
                 [ onClick Roll
@@ -351,12 +350,32 @@ renderRollArea model =
         ]
 
 
+renderBuyArea : Model -> Html Msg
+renderBuyArea model =
+    div [] [ text "Buy something" ]
+
+
 view : Model -> Html Msg
 view model =
     sidebar [ class "h-full ", attribute "sideWidth" "35%" ]
-        [ cover [ attribute "centered" ".roll-container", class "border-r-4 border-gray-100 border-dotted relative overflow-hidden" ]
+        [ cover [ attribute "centered" ".area", attribute "noPad" "true", class "border-r-4 border-gray-100 border-dotted relative overflow-hidden" ]
             [ renderRoundPanel model
-            , renderRollArea model
+            , div [ class "area h-full w-full overflow-hidden relative" ]
+                [ div
+                    [ style "width" "200%"
+                    , style "left"
+                        (if model.phase == Buy then
+                            "-100%"
+
+                         else
+                            "0"
+                        )
+                    , class "absolute top-0 flex h-full items-center"
+                    ]
+                    [ div [ class "w-1/2 h-full flex justify-center items-center" ] [ renderRollArea model ]
+                    , div [ class "w-1/2 h-full flex justify-center items-center" ] [ renderBuyArea model ]
+                    ]
+                ]
             ]
         , cover [ attribute "centered" ".buildings-container" ]
             [ center []
