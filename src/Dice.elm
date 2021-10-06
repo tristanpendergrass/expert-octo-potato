@@ -1,4 +1,4 @@
-module Dice exposing (Dice(..), DieFace(..), create, getUrl, handleAnimationFrameDelta, numberWasRolled, render, renderDie, roll)
+module Dice exposing (Dice(..), DieFace(..), create, getUrl, handleAnimationFrameDelta, isRolling, numberWasRolled, render, renderDie, roll)
 
 import Basics.Extra
 import Ease exposing (Easing)
@@ -315,3 +315,19 @@ render dice =
                     ]
                 ]
         )
+
+
+isRolling : Dice -> Bool
+isRolling dice =
+    case dice of
+        WaitingOnUser ->
+            False
+
+        SlideUp _ _ ->
+            True
+
+        SpinAnimation _ _ ->
+            True
+
+        Finished _ ->
+            False
