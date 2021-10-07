@@ -116,7 +116,7 @@ update msg model =
         SkipToBuy ->
             let
                 newModel =
-                    { model | phase = Buy }
+                    { model | phase = Buy, shop = Just (Shop Meadow Smith) }
             in
             ( newModel, Cmd.none )
 
@@ -162,7 +162,7 @@ update msg model =
                         Just (Shop Meadow Smith)
 
                     else
-                        Nothing
+                        model.shop
 
                 newModel =
                     { model
@@ -371,9 +371,34 @@ renderRollArea model =
         ]
 
 
+getBuildingLabel : Building -> String
+getBuildingLabel building =
+    case building of
+        Meadow ->
+            "Meadow"
+
+        Smith ->
+            "Smith"
+
+
 renderBuyArea : Model -> Html Msg
 renderBuyArea model =
-    div [] [ text "Buy something" ]
+    case model.shop of
+        Nothing ->
+            div [] []
+
+        Just (Shop option1 option2) ->
+            let
+                renderBuyOption option =
+                    div [ class "flex items-center space-x-2" ]
+                        [ div [] [ text <| getBuildingLabel option ]
+                        , primaryButton [] [ text "Buy" ]
+                        ]
+            in
+            div [ class "flex flex-col items-center space-y-8" ]
+                [ renderBuyOption option1
+                , renderBuyOption option2
+                ]
 
 
 view : Model -> Html Msg
