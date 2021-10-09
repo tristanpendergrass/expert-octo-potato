@@ -42,11 +42,11 @@ type Round
 
 
 type Phase
-    = RollOne
-    | RollTwo
-    | RollThree
-    | Buy
-    | PayRent
+    = RollOnePhase
+    | RollTwoPhase
+    | RollThreePhase
+    | BuyPhase
+    | PayRentPhase
 
 
 type alias Model =
@@ -67,7 +67,7 @@ init _ =
       , money = 0
       , buildings = { meadows = 1, smiths = 2 }
       , round = RoundOne
-      , phase = RollOne
+      , phase = RollOnePhase
       , shop = Nothing
       }
     , Cmd.none
@@ -82,11 +82,12 @@ type Msg
     = HandleAnimationFrameDelta Float
     | Roll
     | SkipToBuy
+    | Buy Building
 
 
 isRollPhase : Model -> Bool
 isRollPhase model =
-    model.phase == RollOne || model.phase == RollTwo || model.phase == RollThree
+    model.phase == RollOnePhase || model.phase == RollTwoPhase || model.phase == RollThreePhase
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -116,7 +117,22 @@ update msg model =
         SkipToBuy ->
             let
                 newModel =
-                    { model | phase = Buy, shop = Just (Shop Meadow Smith) }
+                    { model | phase = BuyPhase, shop = Just (Shop Meadow Smith) }
+            in
+            ( newModel, Cmd.none )
+
+        Buy building ->
+            let
+                oldBuildings =
+                    model.buildings
+
+                newModel =
+                    case building of
+                        Meadow ->
+                            { model | buildings = { oldBuildings | meadows = model.buildings.meadows + 1 }, money = model.money - 1 }
+
+                        Smith ->
+                            { model | buildings = { oldBuildings | smiths = model.buildings.smiths + 1 }, money = model.money - 1 }
             in
             ( newModel, Cmd.none )
 
@@ -136,19 +152,19 @@ update msg model =
                 newPhase =
                     if Maybe.Extra.isJust (Dice.numberWasRolled model.dice) then
                         case model.phase of
-                            RollOne ->
-                                RollTwo
+                            RollOnePhase ->
+                                RollTwoPhase
 
-                            RollTwo ->
-                                RollThree
+                            RollTwoPhase ->
+                                RollThreePhase
 
-                            RollThree ->
-                                Buy
+                            RollThreePhase ->
+                                BuyPhase
 
-                            Buy ->
+                            BuyPhase ->
                                 model.phase
 
-                            PayRent ->
+                            PayRentPhase ->
                                 model.phase
 
                     else
@@ -322,13 +338,13 @@ renderRoundPanel model =
         [ div [ class "flex items-center w-full h-16 px-4 text-gray-900 space-x-4" ]
             [ div [] [ text roundText ]
             , div [ class "border-l border-dashed border-gray-900 h-3/4" ] []
-            , div [ class <| boldIfPhaseIs RollOne ] [ text "Roll" ]
+            , div [ class <| boldIfPhaseIs RollOnePhase ] [ text "Roll" ]
             , div [] [ text ">" ]
-            , div [ class <| boldIfPhaseIs RollTwo ] [ text "Roll" ]
+            , div [ class <| boldIfPhaseIs RollTwoPhase ] [ text "Roll" ]
             , div [] [ text ">" ]
-            , div [ class <| boldIfPhaseIs RollThree ] [ text "Roll" ]
+            , div [ class <| boldIfPhaseIs RollThreePhase ] [ text "Roll" ]
             , div [] [ text ">" ]
-            , div [ class <| boldIfPhaseIs Buy ] [ text "Buy" ]
+            , div [ class <| boldIfPhaseIs BuyPhase ] [ text "Buy" ]
             ]
         ]
 
@@ -392,7 +408,7 @@ renderBuyArea model =
                 renderBuyOption option =
                     div [ class "flex items-center space-x-2" ]
                         [ div [] [ text <| getBuildingLabel option ]
-                        , primaryButton [] [ text "Buy" ]
+                        , primaryButton [ onClick (Buy option) ] [ text "Buy" ]
                         ]
             in
             div [ class "flex flex-col items-center space-y-8" ]
@@ -410,7 +426,7 @@ view model =
                 [ div
                     [ style "width" "200%"
                     , style "left"
-                        (if model.phase == Buy then
+                        (if model.phase == BuyPhase then
                             "-100%"
 
                          else
