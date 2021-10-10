@@ -277,6 +277,16 @@ renderBuildings model =
         ]
 
 
+renderBuilding : Building -> Html Msg
+renderBuilding building =
+    case building of
+        Meadow ->
+            renderMeadow
+
+        Smith ->
+            renderSmith
+
+
 renderMeadow : Html Msg
 renderMeadow =
     div [ class "rounded-border-2 border-2 border-gray-100 w-64 h-40 bg-blue-500" ]
@@ -406,13 +416,14 @@ renderBuyArea model =
         Just (Shop option1 option2) ->
             let
                 renderBuyOption option =
-                    div [ class "flex items-center space-x-2" ]
-                        [ div [] [ text <| getBuildingLabel option ]
-                        , primaryButton [ onClick (Buy option) ] [ text "Buy" ]
+                    div [ class "flex items-center space-x-16" ]
+                        [ renderBuilding option
+                        , primaryButton [ onClick (Buy option), class "w-24" ] [ text "Buy" ]
                         ]
             in
             div [ class "flex flex-col items-center space-y-8" ]
-                [ renderBuyOption option1
+                [ div [ class "text-4xl" ] [ text "Pick 1" ]
+                , renderBuyOption option1
                 , renderBuyOption option2
                 ]
 
