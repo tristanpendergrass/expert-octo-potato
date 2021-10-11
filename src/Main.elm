@@ -83,11 +83,36 @@ type Msg
     | Roll
     | SkipToBuy
     | Buy Building
+    | SkipBuy
 
 
 isRollPhase : Model -> Bool
 isRollPhase model =
     model.phase == RollOnePhase || model.phase == RollTwoPhase || model.phase == RollThreePhase
+
+
+nextRound : Model -> Model
+nextRound model =
+    let
+        newRound =
+            case model.round of
+                RoundOne ->
+                    RoundTwo
+
+                RoundTwo ->
+                    RoundThree
+
+                RoundThree ->
+                    RoundFour
+
+                RoundFour ->
+                    RoundFour
+    in
+    { model
+        | round = newRound
+        , phase = RollOnePhase
+        , dice = Dice.create
+    }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -135,6 +160,14 @@ update msg model =
                             { model | buildings = { oldBuildings | smiths = model.buildings.smiths + 1 }, money = model.money - 1 }
             in
             ( newModel, Cmd.none )
+
+        SkipBuy ->
+            case model.phase of
+                BuyPhase ->
+                    ( nextRound model, Cmd.none )
+
+                _ ->
+                    noOp
 
         HandleAnimationFrameDelta delta ->
             let
@@ -425,6 +458,7 @@ renderBuyArea model =
                 [ div [ class "text-4xl" ] [ text "Pick 1" ]
                 , renderBuyOption option1
                 , renderBuyOption option2
+                , secondaryButton [ onClick SkipBuy ] [ text "Skip" ]
                 ]
 
 
