@@ -166,7 +166,7 @@ update msg model =
                             { model | buildings = { oldBuildings | smiths = model.buildings.smiths + 1 }, money = newMoney }
             in
             if canBuy then
-                ( newModel, Cmd.none )
+                ( nextRound newModel, Cmd.none )
 
             else
                 noOp
