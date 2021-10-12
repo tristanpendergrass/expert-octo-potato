@@ -151,15 +151,25 @@ update msg model =
                 oldBuildings =
                     model.buildings
 
+                newMoney =
+                    model.money - 1
+
+                canBuy =
+                    newMoney >= 0
+
                 newModel =
                     case building of
                         Meadow ->
-                            { model | buildings = { oldBuildings | meadows = model.buildings.meadows + 1 }, money = model.money - 1 }
+                            { model | buildings = { oldBuildings | meadows = model.buildings.meadows + 1 }, money = newMoney }
 
                         Smith ->
-                            { model | buildings = { oldBuildings | smiths = model.buildings.smiths + 1 }, money = model.money - 1 }
+                            { model | buildings = { oldBuildings | smiths = model.buildings.smiths + 1 }, money = newMoney }
             in
-            ( newModel, Cmd.none )
+            if canBuy then
+                ( newModel, Cmd.none )
+
+            else
+                noOp
 
         SkipBuy ->
             case model.phase of
@@ -448,10 +458,24 @@ renderBuyArea model =
 
         Just (Shop option1 option2) ->
             let
+                isBuyDisabled =
+                    model.money < 1
+
                 renderBuyOption option =
                     div [ class "flex items-center space-x-16" ]
                         [ renderBuilding option
-                        , primaryButton [ onClick (Buy option), class "w-24" ] [ text "Buy" ]
+                        , primaryButton
+                            [ class "w-24"
+                            , class <|
+                                if isBuyDisabled then
+                                    disabledPrimaryButtonClass
+
+                                else
+                                    ""
+                            , onClick (Buy option)
+                            , disabled isBuyDisabled
+                            ]
+                            [ text "Buy" ]
                         ]
             in
             div [ class "flex flex-col items-center space-y-8" ]
