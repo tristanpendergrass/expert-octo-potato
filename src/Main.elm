@@ -462,8 +462,9 @@ renderBuyArea model =
                     model.money < 1
 
                 renderBuyOption option =
-                    div [ class "flex items-center space-x-16" ]
+                    div [ class "flex items-center space-x-8" ]
                         [ renderBuilding option
+                        , div [] [ text "$1" ]
                         , primaryButton
                             [ class "w-24"
                             , class <|
