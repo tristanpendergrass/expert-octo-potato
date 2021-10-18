@@ -26,10 +26,12 @@ type Shop
 type Building
     = Meadow
     | Smith
+    | Stream
 
 
 type alias Buildings =
     { meadows : Int
+    , streams : Int
     , smiths : Int
     }
 
@@ -65,7 +67,7 @@ init _ =
     ( { seed = Random.initialSeed 0
       , dice = Dice.create
       , money = 0
-      , buildings = { meadows = 1, smiths = 2 }
+      , buildings = { meadows = 1, streams = 1, smiths = 2 }
       , round = RoundOne
       , phase = RollOnePhase
       , shop = Nothing
@@ -161,6 +163,9 @@ update msg model =
                     case building of
                         Meadow ->
                             { model | buildings = { oldBuildings | meadows = model.buildings.meadows + 1 }, money = newMoney }
+
+                        Stream ->
+                            { model | buildings = { oldBuildings | streams = model.buildings.streams + 1 }, money = newMoney }
 
                         Smith ->
                             { model | buildings = { oldBuildings | smiths = model.buildings.smiths + 1 }, money = newMoney }
@@ -313,6 +318,10 @@ renderBuildings model =
                 , div [] [ text <| "x " ++ String.fromInt model.buildings.meadows ]
                 ]
             , div [ class "flex items-center space-x-4" ]
+                [ renderStream
+                , div [] [ text <| "x " ++ String.fromInt model.buildings.streams ]
+                ]
+            , div [ class "flex items-center space-x-4" ]
                 [ renderSmith
                 , div [] [ text <| "x " ++ String.fromInt model.buildings.smiths ]
                 ]
@@ -325,6 +334,9 @@ renderBuilding building =
     case building of
         Meadow ->
             renderMeadow
+
+        Stream ->
+            renderStream
 
         Smith ->
             renderSmith
@@ -341,6 +353,23 @@ renderMeadow =
             , div [ class "flex justify-center items-center p-4 space-x-2" ]
                 [ div [ class "w-6 h-6" ] [ Dice.renderDie Dice.Two ]
                 , h4 [ class "inline-block text-xl" ] [ text "$4" ]
+                ]
+            ]
+        ]
+
+
+renderStream : Html Msg
+renderStream =
+    div [ class "rounded-border-2 border-2 border-gray-100 w-64 h-40 bg-blue-500" ]
+        [ stack []
+            [ div [ class "flex justify-center items-center p-4 space-x-4" ]
+                [ div [ class "rounded-border border-2 border-gray-100 w-12 h-12 bg-green-500" ] []
+                , h4 [ class "inline-block text-xl" ] [ text "Stream" ]
+                ]
+            , div [ class "flex justify-center items-center p-4 space-x-2" ]
+                [ div [ class "w-6 h-6" ] [ Dice.renderDie Dice.Four ]
+                , div [ class "w-6 h-6" ] [ Dice.renderDie Dice.Six ]
+                , h4 [ class "inline-block text-xl" ] [ text "$2" ]
                 ]
             ]
         ]
@@ -447,6 +476,9 @@ getBuildingLabel building =
     case building of
         Meadow ->
             "Meadow"
+
+        Stream ->
+            "Stream"
 
         Smith ->
             "Smith"
