@@ -117,6 +117,66 @@ nextRound model =
     }
 
 
+type alias MoneyUpdate =
+    { hasUpdated : Bool
+    , newMoney : Int
+    }
+
+
+type alias MoneyUpdateFn =
+    Model -> Dice.DieFace -> MoneyUpdate -> MoneyUpdate
+
+
+meadowMoneyUpdate : MoneyUpdateFn
+meadowMoneyUpdate model dieFace moneyUpdate =
+    if dieFace == Dice.Two then
+        { hasUpdated = True
+        , newMoney = moneyUpdate.newMoney + (4 * model.buildings.meadows)
+        }
+
+    else
+        moneyUpdate
+
+
+streamMoneyUpdate : MoneyUpdateFn
+streamMoneyUpdate model dieFace moneyUpdate =
+    if dieFace == Dice.Four || dieFace == Dice.Six then
+        { hasUpdated = True
+        , newMoney = moneyUpdate.newMoney + (2 * model.buildings.streams)
+        }
+
+    else
+        moneyUpdate
+
+
+smithMoneyUpdate : MoneyUpdateFn
+smithMoneyUpdate model dieFace moneyUpdate =
+    if moneyUpdate.hasUpdated then
+        moneyUpdate
+
+    else
+        { hasUpdated = True
+        , newMoney = moneyUpdate.newMoney + (1 * model.buildings.smiths)
+        }
+
+
+updateMoney : Model -> Dice.DieFace -> Int
+updateMoney model dieFace =
+    let
+        initialMoneyUpdate : MoneyUpdate
+        initialMoneyUpdate =
+            { hasUpdated = False, newMoney = 0 }
+
+        moneyUpdate : MoneyUpdate
+        moneyUpdate =
+            initialMoneyUpdate
+                |> meadowMoneyUpdate model dieFace
+                |> streamMoneyUpdate model dieFace
+                |> smithMoneyUpdate model dieFace
+    in
+    model.money + moneyUpdate.newMoney
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
@@ -187,15 +247,9 @@ update msg model =
         HandleAnimationFrameDelta delta ->
             let
                 newMoney =
-                    case Dice.numberWasRolled model.dice of
-                        Just Dice.Two ->
-                            model.money + (4 * model.buildings.meadows)
-
-                        Just _ ->
-                            model.money + (1 * model.buildings.smiths)
-
-                        _ ->
-                            model.money
+                    Dice.numberWasRolled model.dice
+                        |> Maybe.map (updateMoney model)
+                        |> Maybe.withDefault model.money
 
                 newPhase =
                     if Maybe.Extra.isJust (Dice.numberWasRolled model.dice) then
