@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Animator exposing (Animator, Timeline)
 import Browser
 import Browser.Events
 import Dice exposing (Dice(..))
@@ -8,6 +9,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Maybe.Extra
 import Random
+import Time
 
 
 main : Program () Model Msg
@@ -59,6 +61,7 @@ type alias Model =
     , round : Round
     , phase : Phase
     , shop : Maybe Shop
+    , lastRollDelay : Maybe (Timeline Bool)
     }
 
 
@@ -71,9 +74,15 @@ init _ =
       , round = RoundOne
       , phase = RollOnePhase
       , shop = Nothing
+      , lastRollDelay = Nothing
       }
     , Cmd.none
     )
+
+
+animator : Animator Model
+animator =
+    Animator.animator
 
 
 
@@ -81,7 +90,8 @@ init _ =
 
 
 type Msg
-    = HandleAnimationFrameDelta Float
+    = Tick Time.Posix
+    | HandleAnimationFrameDelta Float
     | Roll
     | SkipToBuy
     | Buy Building
@@ -184,29 +194,35 @@ update msg model =
             ( model, Cmd.none )
     in
     case msg of
+        Tick newTime ->
+            ( model
+                |> Animator.update newTime animator
+            , Cmd.none
+            )
+
         Roll ->
             if isRollPhase model then
                 let
                     ( newDice, newSeed ) =
                         Random.step Dice.roll model.seed
-
-                    newModel =
-                        { model
-                            | seed = newSeed
-                            , dice = newDice
-                        }
                 in
-                ( newModel, Cmd.none )
+                ( { model
+                    | seed = newSeed
+                    , dice = newDice
+                  }
+                , Cmd.none
+                )
 
             else
                 noOp
 
         SkipToBuy ->
-            let
-                newModel =
-                    { model | phase = BuyPhase, shop = Just (Shop Meadow Smith) }
-            in
-            ( newModel, Cmd.none )
+            ( { model
+                | phase = BuyPhase
+                , shop = Just (Shop Meadow Smith)
+              }
+            , Cmd.none
+            )
 
         Buy building ->
             let
@@ -298,8 +314,11 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Browser.Events.onAnimationFrameDelta HandleAnimationFrameDelta
+subscriptions model =
+    Sub.batch
+        [ Browser.Events.onAnimationFrameDelta HandleAnimationFrameDelta
+        , Animator.toSubscription Tick model animator
+        ]
 
 
 
