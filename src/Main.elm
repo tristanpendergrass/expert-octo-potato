@@ -61,7 +61,7 @@ type alias Model =
     , round : Round
     , phase : Phase
     , shop : Maybe Shop
-    , lastRollDelay : Maybe (Timeline Bool)
+    , hasCompletedIncomeDisplay : Timeline Bool
     }
 
 
@@ -74,7 +74,7 @@ init _ =
       , round = RoundOne
       , phase = RollOnePhase
       , shop = Nothing
-      , lastRollDelay = Nothing
+      , hasCompletedIncomeDisplay = Animator.init False
       }
     , Cmd.none
     )
@@ -83,6 +83,7 @@ init _ =
 animator : Animator Model
 animator =
     Animator.animator
+        |> Animator.watching .hasCompletedIncomeDisplay (\newValue model -> { model | hasCompletedIncomeDisplay = newValue })
 
 
 
