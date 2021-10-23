@@ -256,7 +256,10 @@ update msg model =
         SkipBuy ->
             case model.phase of
                 BuyPhase ->
-                    ( nextRound model, Cmd.none )
+                    ( model
+                        |> nextRound
+                    , Cmd.none
+                    )
 
                 _ ->
                     noOp
@@ -298,16 +301,15 @@ update msg model =
 
                     else
                         model.shop
-
-                newModel =
-                    { model
-                        | dice = newDice
-                        , money = newMoney
-                        , phase = newPhase
-                        , shop = newShop
-                    }
             in
-            ( newModel, Cmd.none )
+            ( { model
+                | dice = newDice
+                , money = newMoney
+                , phase = newPhase
+                , shop = newShop
+              }
+            , Cmd.none
+            )
 
 
 
