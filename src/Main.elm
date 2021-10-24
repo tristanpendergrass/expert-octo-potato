@@ -319,8 +319,8 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Browser.Events.onAnimationFrameDelta HandleAnimationFrameDelta
-        , Animator.toSubscription Tick model animator
+        [ Animator.toSubscription Tick model animator
+        , Browser.Events.onAnimationFrameDelta HandleAnimationFrameDelta
         ]
 
 
