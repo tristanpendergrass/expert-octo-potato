@@ -328,6 +328,16 @@ subscriptions model =
 -- VIEW
 
 
+tooltip : String
+tooltip =
+    "relative group"
+
+
+tooltipText : String
+tooltipText =
+    "opacity-0 invisible group-hover:opacity-100 group-hover:visible absolute whitespace-nowrap z-50 bg-gray-300 text-gray-900 text-sm py-1 px-2 rounded transition duration-300 -top-full"
+
+
 primaryButton : List (Attribute msg) -> List (Html msg) -> Html msg
 primaryButton attrs =
     button <|
@@ -426,9 +436,12 @@ renderMeadow =
                 [ div [ class "rounded-border border-2 border-gray-100 w-12 h-12 bg-green-500" ] []
                 , h4 [ class "inline-block text-xl" ] [ text "Meadow" ]
                 ]
-            , div [ class "flex justify-center items-center p-4 space-x-2" ]
-                [ div [ class "w-6 h-6" ] [ Dice.renderDie Dice.Two ]
-                , h4 [ class "inline-block text-xl" ] [ text "$4" ]
+            , div [ class "flex justify-center items-center p-4" ]
+                [ div [ class "flex justify-center items-center space-x-2", class tooltip ]
+                    [ div [ class "w-6 h-6" ] [ Dice.renderDie Dice.Two ]
+                    , h4 [ class "inline-block text-xl" ] [ text "$4" ]
+                    , div [ class tooltipText ] [ text "Pays $4 on a roll of Two" ]
+                    ]
                 ]
             ]
         ]
@@ -442,10 +455,13 @@ renderStream =
                 [ div [ class "rounded-border border-2 border-gray-100 w-12 h-12 bg-green-500" ] []
                 , h4 [ class "inline-block text-xl" ] [ text "Stream" ]
                 ]
-            , div [ class "flex justify-center items-center p-4 space-x-2" ]
-                [ div [ class "w-6 h-6" ] [ Dice.renderDie Dice.Four ]
-                , div [ class "w-6 h-6" ] [ Dice.renderDie Dice.Six ]
-                , h4 [ class "inline-block text-xl" ] [ text "$2" ]
+            , div [ class "flex justify-center items-center p-4" ]
+                [ div [ class "flex justify-center items-center space-x-2", class tooltip ]
+                    [ div [ class "w-6 h-6" ] [ Dice.renderDie Dice.Four ]
+                    , div [ class "w-6 h-6" ] [ Dice.renderDie Dice.Six ]
+                    , h4 [ class "inline-block text-xl" ] [ text "$2" ]
+                    , div [ class tooltipText ] [ text "Pays $2 on a roll of Four or Six" ]
+                    ]
                 ]
             ]
         ]
@@ -460,10 +476,13 @@ renderSmith =
                 , h4 [ class "inline-block text-xl" ] [ text "Smith" ]
                 ]
             , div [ class "flex justify-center items-center p-4 space-x-2" ]
-                [ div [ class "w-6 h-6" ]
-                    [ img [ class "w-100 h-100", src <| "Dice-none.svg" ] []
+                [ div [ class "flex justify-center items-center space-x-2", class tooltip ]
+                    [ div [ class "w-6 h-6" ]
+                        [ img [ class "w-100 h-100", src <| "Dice-none.svg" ] []
+                        ]
+                    , h4 [ class "inline-block text-xl" ] [ text "$1" ]
+                    , div [ class tooltipText ] [ text "Pays $1 when no other building triggers" ]
                     ]
-                , h4 [ class "inline-block text-xl" ] [ text "$1" ]
                 ]
             ]
         ]
