@@ -210,7 +210,7 @@ update msg model =
     in
     case msg of
         Tick newTime ->
-            ( model
+            ( Debug.log "newModel tick" model
                 |> Animator.update newTime animator
             , Cmd.none
             )
@@ -289,24 +289,28 @@ update msg model =
 
                 newPhase =
                     if Maybe.Extra.isJust (Dice.numberWasRolled model.dice) then
-                        case Animator.current model.phase of
-                            RollOnePhase ->
-                                RollTwoPhase
+                        let
+                            nextPhase =
+                                case Animator.current model.phase of
+                                    RollOnePhase ->
+                                        RollTwoPhase
 
-                            RollTwoPhase ->
-                                RollThreePhase
+                                    RollTwoPhase ->
+                                        RollThreePhase
 
-                            RollThreePhase ->
-                                BuyPhase
+                                    RollThreePhase ->
+                                        BuyPhase
 
-                            BuyPhase ->
-                                BuyPhase
+                                    BuyPhase ->
+                                        BuyPhase
 
-                            PayRentPhase ->
-                                PayRentPhase
+                                    PayRentPhase ->
+                                        PayRentPhase
+                        in
+                        Animator.go Animator.quickly nextPhase model.phase
 
                     else
-                        Animator.current model.phase
+                        model.phase
 
                 newDice =
                     Dice.handleAnimationFrameDelta delta model.dice
@@ -321,9 +325,7 @@ update msg model =
             ( { model
                 | dice = newDice
                 , money = newMoney
-                , phase =
-                    model.phase
-                        |> Animator.go Animator.quickly newPhase
+                , phase = newPhase
                 , shop = newShop
               }
             , Cmd.none
@@ -338,8 +340,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Animator.toSubscription Tick model animator
-
-        -- , Browser.Events.onAnimationFrameDelta HandleAnimationFrameDelta
+        , Browser.Events.onAnimationFrameDelta HandleAnimationFrameDelta
         ]
 
 
