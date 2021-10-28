@@ -59,7 +59,7 @@ type alias Model =
     , money : Int
     , buildings : Buildings
     , round : Round
-    , phase : Phase
+    , phase : Timeline Phase
     , shop : Maybe Shop
     , hasCompletedIncomeDisplay : Timeline Bool
     }
@@ -72,7 +72,7 @@ init _ =
       , money = 0
       , buildings = { meadows = 1, streams = 1, smiths = 2 }
       , round = RoundOne
-      , phase = RollOnePhase
+      , phase = Animator.init RollOnePhase
       , shop = Nothing
       , hasCompletedIncomeDisplay = Animator.init False
       }
@@ -84,6 +84,7 @@ animator : Animator Model
 animator =
     Animator.animator
         |> Animator.watching .hasCompletedIncomeDisplay (\newValue model -> { model | hasCompletedIncomeDisplay = newValue })
+        |> Animator.watching .phase (\newValue model -> { model | phase = newValue })
 
 
 
@@ -101,7 +102,18 @@ type Msg
 
 isRollPhase : Model -> Bool
 isRollPhase model =
-    model.phase == RollOnePhase || model.phase == RollTwoPhase || model.phase == RollThreePhase
+    case Animator.current model.phase of
+        RollOnePhase ->
+            True
+
+        RollTwoPhase ->
+            True
+
+        RollThreePhase ->
+            True
+
+        _ ->
+            False
 
 
 nextRound : Model -> Model
@@ -123,7 +135,9 @@ nextRound model =
     in
     { model
         | round = newRound
-        , phase = RollOnePhase
+        , phase =
+            model.phase
+                |> Animator.go Animator.quickly RollOnePhase
         , dice = Dice.create
     }
 
@@ -219,7 +233,9 @@ update msg model =
 
         SkipToBuy ->
             ( { model
-                | phase = BuyPhase
+                | phase =
+                    model.phase
+                        |> Animator.go Animator.quickly BuyPhase
                 , shop = Just (Shop Meadow Smith)
               }
             , Cmd.none
@@ -254,7 +270,7 @@ update msg model =
                 noOp
 
         SkipBuy ->
-            case model.phase of
+            case Animator.current model.phase of
                 BuyPhase ->
                     ( model
                         |> nextRound
@@ -273,7 +289,7 @@ update msg model =
 
                 newPhase =
                     if Maybe.Extra.isJust (Dice.numberWasRolled model.dice) then
-                        case model.phase of
+                        case Animator.current model.phase of
                             RollOnePhase ->
                                 RollTwoPhase
 
@@ -284,13 +300,13 @@ update msg model =
                                 BuyPhase
 
                             BuyPhase ->
-                                model.phase
+                                BuyPhase
 
                             PayRentPhase ->
-                                model.phase
+                                PayRentPhase
 
                     else
-                        model.phase
+                        Animator.current model.phase
 
                 newDice =
                     Dice.handleAnimationFrameDelta delta model.dice
@@ -305,7 +321,9 @@ update msg model =
             ( { model
                 | dice = newDice
                 , money = newMoney
-                , phase = newPhase
+                , phase =
+                    model.phase
+                        |> Animator.go Animator.quickly newPhase
                 , shop = newShop
               }
             , Cmd.none
@@ -320,7 +338,8 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Animator.toSubscription Tick model animator
-        , Browser.Events.onAnimationFrameDelta HandleAnimationFrameDelta
+
+        -- , Browser.Events.onAnimationFrameDelta HandleAnimationFrameDelta
         ]
 
 
@@ -507,7 +526,7 @@ renderRoundPanel model =
 
         boldIfPhaseIs : Phase -> String
         boldIfPhaseIs phase =
-            if model.phase == phase then
+            if Animator.current model.phase == phase then
                 "font-bold"
 
             else
@@ -625,7 +644,7 @@ view model =
                 [ div
                     [ style "width" "200%"
                     , style "left"
-                        (if model.phase == BuyPhase then
+                        (if Animator.current model.phase == BuyPhase then
                             "-100%"
 
                          else
