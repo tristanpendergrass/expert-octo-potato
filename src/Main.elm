@@ -1,6 +1,7 @@
 module Main exposing (main)
 
 import Animator exposing (Animator, Timeline)
+import Animator.Inline
 import Browser
 import Browser.Events
 import Dice exposing (Dice(..))
@@ -636,6 +637,15 @@ renderBuyArea model =
                 ]
 
 
+percentToString : Float -> String
+percentToString percent =
+    let
+        newPercent =
+            percent * 100 - 100
+    in
+    "-" ++ String.fromFloat newPercent ++ "%"
+
+
 view : Model -> Html Msg
 view model =
     sidebar [ class "h-full ", attribute "sideWidth" "35%" ]
@@ -644,7 +654,9 @@ view model =
             , div [ class "area h-full w-full overflow-hidden relative" ]
                 [ div
                     [ style "width" "200%"
-                    , style "left"
+                    , Animator.Inline.style model.phase
+                        "left"
+                        percentToString
                         (if Animator.current model.phase == BuyPhase then
                             "-100%"
 
