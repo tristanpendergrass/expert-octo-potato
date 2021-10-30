@@ -657,11 +657,12 @@ view model =
                     , Animator.Inline.style model.phase
                         "left"
                         percentToString
-                        (if Animator.current model.phase == BuyPhase then
-                            "-100%"
+                        (\phase ->
+                            if phase == BuyPhase then
+                                Animator.at 1
 
-                         else
-                            "0"
+                            else
+                                Animator.at 0
                         )
                     , class "absolute top-0 flex h-full items-center"
                     ]
