@@ -641,9 +641,9 @@ percentToString : Float -> String
 percentToString percent =
     let
         newPercent =
-            percent * 100 - 100
+            Debug.log "percent is" percent - 100
     in
-    "-" ++ String.fromFloat newPercent ++ "%"
+    Debug.log "result:" (String.fromFloat newPercent ++ "%")
 
 
 view : Model -> Html Msg
