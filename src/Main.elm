@@ -643,7 +643,7 @@ percentToString percent =
         newPercent =
             Debug.log "percent is" percent - 100
     in
-    Debug.log "result:" (String.fromFloat newPercent ++ "%")
+    Debug.log "result: " (String.fromFloat newPercent ++ "%")
 
 
 view : Model -> Html Msg
