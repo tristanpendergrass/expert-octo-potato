@@ -4,6 +4,7 @@ import Animator exposing (Animator, Timeline)
 import Animator.Inline
 import Browser
 import Browser.Events
+import Color exposing (Color(..))
 import Dice exposing (Dice(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -654,16 +655,32 @@ view model =
             , div [ class "area h-full w-full overflow-hidden relative" ]
                 [ div
                     [ style "width" "200%"
-                    , Animator.Inline.style model.phase
-                        "left"
-                        percentToString
+                    , Animator.Inline.backgroundColor model.phase
                         (\phase ->
                             if phase == BuyPhase then
-                                Animator.at 1
+                                Color.red
 
                             else
-                                Animator.at 0
+                                Color.green
                         )
+                    , style "background-color" "red"
+                    , style "left"
+                        (if Animator.current model.phase == BuyPhase then
+                            "-100%"
+
+                         else
+                            "0"
+                        )
+
+                    -- , Animator.Inline.style model.phase
+                    --     "left"
+                    --     percentToString
+                    --     (\phase ->
+                    --         if phase == BuyPhase then
+                    --             Animator.at 1
+                    --         else
+                    --             Animator.at 0
+                    --     )
                     , class "absolute top-0 flex h-full items-center"
                     ]
                     [ div [ class "w-1/2 h-full flex justify-center items-center" ] [ renderRollArea model ]
